@@ -7,7 +7,7 @@ A=.a
 O=.o
 E=
 CC=cc
-CFLAGS=-g
+CFLAGS=-g -DLCCDIR="\"./bin/\""
 LDFLAGS=-g
 LD=$(CC)
 AR=ar ruv

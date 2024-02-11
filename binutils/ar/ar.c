@@ -66,6 +66,7 @@ unsigned char buf[BUFSIZE];
 /**************************************************************/
 
 
+
 void mesg(int c, char *filename) {
   if (flg['v' - 'a']) {
     printf("%c - %s\n", c, filename);
@@ -280,7 +281,7 @@ void copyFile(int fi, int fo, int flags, ArHeader arhead) {
     }
     arhead.size -= BUFSIZE;
   }
-  if (pe != 0) fprintf(stderr, "ar: phase error on %s\n", file);  
+  if (pe != 0) fprintf(stderr, "ar: phase error on %s\n", file); 
 }
 
 
@@ -300,6 +301,7 @@ void moveFile(int f, int tf0, char* file, struct stat *stbuf) {
   arhead.uid = stbuf->st_uid;
   arhead.gid = stbuf->st_gid;
   arhead.mode = stbuf->st_mode;
+
   copyFile(f, tf0, OODD | HEAD, arhead);
   close(f);
 }
@@ -350,6 +352,7 @@ void moveargfiles(int tf0,  int namc, char **namv) {
       continue;
     }
     moveFile(f, tf0, file, &stbuf);
+
   }
 }
 
@@ -378,8 +381,10 @@ void dCmd(void) {
 void rCmd(char *posName, char* arnam, char **namv, int namc, int aflag, int bflag, int uflag) {
   int f;
 
+
   init(&tf0);
   getArchive(&af, arnam);
+
   while (!getMember(&file, af, &arhead)) {
     if (aflag || bflag) baMatch(&tf0, &tf1, file, posName, aflag);
     if (namc == 0 || matchargs(&file, namc, namv)) {
@@ -465,14 +470,15 @@ int main(int argc, char *argv[]) {
   char *cp;  
   int res;
   char cmd;
-
   
   strcpy(tmp0nam, "v0XXXXXX");
   strcpy(tmp1nam, "v1XXXXXX");  
   if (argc < 3 || *argv[1] != '-') {
     usage();
   }
+
   cmd = '0';
+
   for (cp = argv[1] + 1; *cp != '\0'; cp++) {
     switch (*cp) {
       case 'd':
@@ -522,7 +528,8 @@ int main(int argc, char *argv[]) {
   switch(cmd) {
       case 'd': dCmd();
         break;
-      case 'r': rCmd(posName, arnam, namv, namc, flg['a'-'a'], flg['b'-'a'], flg['u'-'a']);
+      case 'r':
+        rCmd(posName, arnam, namv, namc, flg['a'-'a'], flg['b'-'a'], flg['u'-'a']);
         break;
       case 't': tCmd();
         break;

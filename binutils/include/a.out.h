@@ -7,11 +7,11 @@
 #define _A_OUT_H_
 
 
-#define EXEC_MAGIC	0x1AA09232
+#define EXEC_MAGIC	0314
 
 
 #define METHOD_W32	0	/* write full 32 bit word with value */
-#define METHOD_R12	1	/* write 12 bit relative to PC */
+#define METHOD_R15	1	/* write 15 bit relative to PC */
 #define METHOD_RL12	2	/* write low 12 bit relative to PC*/
 #define METHOD_RH20	3	/* write low 20 bit relative to PC */
 #define METHOD_RS12	4	/* write low 12 bit relative to PC*/

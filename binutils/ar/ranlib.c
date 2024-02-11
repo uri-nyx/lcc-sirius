@@ -42,6 +42,13 @@ ExecHeader exhdr;
 
 /**************************************************************/
 
+unsigned int
+toLE (unsigned int num)
+{
+  return ((num & 0xff000000) >> 24) | ((num & 0x00ff0000) >> 8)
+          | ((num & 0x0000ff00) << 8) | (num << 24);
+}
+
 int nextMember(void) {
   int pad;
 
@@ -144,6 +151,7 @@ int hasSymbols(char *archive) {
 
 int updateSymbols(char *archive, int verbose) {  
   unsigned int skip;
+  int i;
   int numSymbols;
   unsigned int stringStart;
   SymbolRecord symbol;
@@ -178,10 +186,19 @@ int updateSymbols(char *archive, int verbose) {
   /* iterate over archive members */
   do {
     if (fread(&exhdr, sizeof(exhdr), 1, fi) != 1 ||
-        exhdr.magic != EXEC_MAGIC) {
+        exhdr.magic != toLE(EXEC_MAGIC)) {
       /* archive member not in proper format - skip */
       continue;
     }
+    exhdr.bsize = toLE(exhdr.bsize);
+    exhdr.crsize = toLE(exhdr.crsize);
+    exhdr.csize = toLE(exhdr.csize);
+    exhdr.drsize = toLE(exhdr.drsize);
+    exhdr.dsize = toLE(exhdr.dsize);
+    exhdr.magic = toLE(exhdr.magic);
+    exhdr.strsize = toLE(exhdr.strsize);
+    exhdr.symsize = toLE(exhdr.symsize);
+
     skip = exhdr.csize + exhdr.dsize + exhdr.crsize + exhdr.drsize;
     fseek(fi, skip, SEEK_CUR);
     numSymbols = exhdr.symsize / sizeof(SymbolRecord);
@@ -198,6 +215,13 @@ int updateSymbols(char *archive, int verbose) {
         fprintf(stderr, "ar: cannot read archive\n");
         break;
       }
+      symbol.debug = toLE(symbol.debug);
+      symbol.debugtype = toLE(symbol.debugtype);
+      symbol.debugvalue = toLE(symbol.debugvalue);
+      symbol.name = toLE(symbol.name);
+      symbol.type = toLE(symbol.type);
+      symbol.value = toLE(symbol.value);
+
       if ((symbol.type & MSB) == 0) {
         /* this is an exported symbol */
         curPos = ftell(fi);
@@ -223,6 +247,12 @@ int updateSymbols(char *archive, int verbose) {
     unlink(TEMP_NAME);
     return 1;
   }
+  for (i = 0; i < numEntries; i++)
+  {
+    table[i].name = toLE(table[i].name);
+    table[i].position = toLE(table[i].position);
+  }
+  
   if (fwrite(table, sizeof(Entry), numEntries, fo) != numEntries) {
     fprintf(stderr, "ar: can't write temporary file\n");
     fclose(fo);
