@@ -1,1 +1,0 @@
-csrsi mstatus, 8
