@@ -310,73 +310,71 @@ reg:	CVUU4(INDIRU2(addr))	"\tlhu x%c,%0\n"	1
 reg:	CVUI4(INDIRU1(addr))	"\tlbu x%c,%0\n"	1
 reg:	CVUI4(INDIRU2(addr))	"\tlhu x%c,%0\n"	1
 
-reg: DIVI4(reg,reg)  "\tdiv x%c,x%0,x%1\n"   1
-reg: DIVU4(reg,reg)  "\tdivu x%c,x%0,x%1\n"  1
-reg: MODI4(reg,reg)  "\trem x%c,x%0,x%1\n"   1
-reg: MODU4(reg,reg)  "\tremu x%c,x%0,x%1\n"  1
-reg: MULI4(reg,reg)  "\tmul x%c,x%0,x%1\n"   1
-reg: MULU4(reg,reg)  "\tmul x%c,x%0,x%1\n"   1
+reg: DIVI4(reg,reg)  "\tidiv x%c,x0,x%0,x%1\n"   1
+reg: DIVU4(reg,reg)  "\tudiv x%c,x0,x%0,x%1\n"  1
+reg: MODI4(reg,reg)  "\tidiv x0,x%c,x%0,x%1\n"   1
+reg: MODU4(reg,reg)  "\tudiv x0,x%c,x%0,x%1\n"  1
+reg: MULI4(reg,reg)  "\timul x0,x%c,x%0,x%1\n"   1
+reg: MULU4(reg,reg)  "\timul x0,x%c,x%0,x%1\n"   1
 
-cons12: CNSTI4 "%a" range(a,-2048,2047)
+cons15: CNSTI4 "%a" range(a,-16384,16383)
 
 reg: ADDI4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
-reg: ADDI4(reg,cons12) "\taddi x%c,x%0,%1\n"  1
+reg: ADDI4(reg,cons15) "\taddi x%c,x%0,%1\n"  1
 reg: ADDP4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
-reg: ADDP4(reg,CVIU4(cons12)) "\taddi x%c,x%0,%1\n"  1
+reg: ADDP4(reg,CVIU4(cons15)) "\taddi x%c,x%0,%1\n"  1
 reg: ADDU4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
-reg: ADDU4(reg,CVIU4(cons12)) "\taddi x%c,x%0,%1\n"  1
+reg: ADDU4(reg,CVIU4(cons15)) "\taddi x%c,x%0,%1\n"  1
 
 reg: BANDI4(reg,reg)  "\tand x%c,x%0,x%1\n"   1
-reg: BANDI4(reg,cons12)  "\tandi x%c,x%0,%1\n"   1
+reg: BANDI4(reg,cons15)  "\tandi x%c,x%0,%1\n"   1
 reg: BORI4(reg,reg)   "\tor x%c,x%0,x%1\n"    1
-reg: BORI4(reg,cons12)   "\tori x%c,x%0,%1\n"    1
+reg: BORI4(reg,cons15)   "\tori x%c,x%0,%1\n"    1
 reg: BXORI4(reg,reg)  "\txor x%c,x%0,x%1\n"   1
-reg: BXORI4(reg,cons12)  "\txori x%c,x%0,%1\n"   1
+reg: BXORI4(reg,cons15)  "\txori x%c,x%0,%1\n"   1
 
 reg: BANDU4(reg,reg)  "\tand x%c,x%0,x%1\n"   1
-reg: BANDU4(reg,CVIU4(cons12))  "\tandi x%c,x%0,%1\n"   1
+reg: BANDU4(reg,CVIU4(cons15))  "\tandi x%c,x%0,%1\n"   1
 reg: BORU4(reg,reg)   "\tor x%c,x%0,x%1\n"    1
-reg: BORU4(reg,CVIU4(cons12))   "\tori x%c,x%0,%1\n"    1
+reg: BORU4(reg,CVIU4(cons15))   "\tori x%c,x%0,%1\n"    1
 reg: BXORU4(reg,reg)  "\txor x%c,x%0,x%1\n"   1
-reg: BXORU4(reg,CVIU4(cons12))  "\txori x%c,x%0,%1\n"   1
+reg: BXORU4(reg,CVIU4(cons15))  "\txori x%c,x%0,%1\n"   1
 reg: SUBI4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBI4(reg,cons12)   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBI4(reg,cons15)   "\taddi x%c,x%0,-%1\n"  1
 reg: SUBP4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBP4(reg,cons12)   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBP4(reg,cons15)   "\taddi x%c,x%0,-%1\n"  1
 reg: SUBU4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBU4(reg,CVIU4(cons12))   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBU4(reg,CVIU4(cons15))   "\taddi x%c,x%0,-%1\n"  1
 reg: NEGI4(reg)   "\tsub x%c,x0,x%0\n" 1
 reg: BCOMI4(reg)   "\txori x%c,x%0,-1\n" 1
 reg: BCOMU4(reg)   "\txori x%c,x%0,-1\n" 1
 
 con5:	CNSTU4			"%a"			range(a, 0, 31)
 
-reg:	LSHI4(reg,CVUI4(con5))		"\tslli x%c,x%0,%1\n"	1
-reg:	LSHI4(reg,reg)		"\tsll x%c,x%0,x%1\n"	1
-reg:	LSHU4(reg,con5)		"\tslli x%c,x%0,%1\n"	1
-reg:	LSHU4(reg,reg)		"\tsll x%c,x%0,x%1\n"	1
-reg:	RSHI4(reg,CVUI4(con5))		"\tsrai x%c,x%0,%1\n"	1
-reg:	RSHI4(reg,reg)		"\tsra x%c,x%0,x%1\n"	1
-reg:	RSHU4(reg,con5)		"\tsrli x%c,x%0,%1\n"	1
-reg:	RSHU4(reg,reg)		"\tsrl x%c,x%0,x%1\n"	1
+reg:	LSHI4(reg,CVUI4(con5))		"\tshlli x%c,x%0,%1\n"	1
+reg:	LSHI4(reg,reg)		"\tshll x%c,x%0,x%1\n"	1
+reg:	LSHU4(reg,con5)		"\tshlli x%c,x%0,%1\n"	1
+reg:	LSHU4(reg,reg)		"\tshll x%c,x%0,x%1\n"	1
+reg:	RSHI4(reg,CVUI4(con5))		"\tshrai x%c,x%0,%1\n"	1
+reg:	RSHI4(reg,reg)		"\tshra x%c,x%0,x%1\n"	1
+reg:	RSHU4(reg,con5)		"\tshrli x%c,x%0,%1\n"	1
+reg:	RSHU4(reg,reg)		"\tshrl x%c,x%0,x%1\n"	1
 
-reg: LOADI1(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADU1(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADI2(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADU2(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADI4(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADP4(reg)  "\taddi x%c,x%0,0\n"  move(a)
-reg: LOADU4(reg)  "\taddi x%c,x%0,0\n"  move(a)
+reg: LOADI1(reg)  "\tmv x%c,x%0 ; LOADI1\n"  move(a)
+reg: LOADU1(reg)  "\tmv x%c,x%0 ; LOADU1\n"  move(a)
+reg: LOADI2(reg)  "\tmv x%c,x%0 ; LOADI2\n"  move(a)
+reg: LOADU2(reg)  "\tmv x%c,x%0 ; LOADU2\n"  move(a)
+reg: LOADI4(reg)  "\tmv x%c,x%0 ; LOADI4\n"  move(a)
+reg: LOADP4(reg)  "\tmv x%c,x%0 ; LOADP4\n"  move(a)
+reg: LOADU4(reg)  "\tmv x%c,x%0 ; LOADU4\n"  move(a)
 
-
-
-reg:	CVII4(reg)  "\tslli x%c,x%0,8*(4-%a)\n\tsrai x%c,x%c,8*(4-%a)\n"  2
-reg:	CVUI4(reg)  "\tslli x%c,x%0,8*(4-%a)\n\tsrli x%c,x%c,8*(4-%a)\n"  2
-reg:	CVUU4(reg)  "\tslli x%c,x%0,8*(4-%a)\n\tsrli x%c,x%c,8*(4-%a)\n"  2
+reg:	CVII4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrai x%c,x%c,8*(4-%a)\n"  2
+reg:	CVUI4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrli x%c,x%c,8*(4-%a)\n"  2
+reg:	CVUU4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrli x%c,x%c,8*(4-%a)\n"  2
 
 stmt: LABELV  "%a:\n"
-stmt: JUMPV(lab)  "\tjal x0,%0\n"   1
-stmt: JUMPV(reg)   "\tjalr x0,x%0,0\n"  1
+stmt: JUMPV(lab)  "\tj %0\n"   1
+stmt: JUMPV(reg)   "\tjalr x0,0(x%0)\n"  1
 
 stmt: EQI4(reg,reg)  "\tbeq x%0,x%1,%a\n"   1
 stmt: EQU4(reg,reg)  "\tbeq x%0,x%1,%a\n"   1
@@ -392,19 +390,19 @@ stmt: NEI4(reg,reg)  "\tbne x%0,x%1,%a\n"   1
 stmt: NEU4(reg,reg)  "\tbne x%0,x%1,%a\n"   1
 
 
-reg:  CALLF4(lab)  "\tjal x1,%0\n"  1
-freg:  CALLF4(lab)  "\tjal x1,%0\n"  !hardfloat
+reg:  CALLF4(lab)  "\tcall %0\n"  1
+freg:  CALLF4(lab)  "\tcall %0\n"  !hardfloat
 
-reg:  CALLI4(lab)  "\tjal x1,%0\n"  1
-reg:  CALLP4(lab)  "\tjal x1,%0\n"  1
-reg:  CALLU4(lab)  "\tjal x1,%0\n"  1
-stmt: CALLV(lab)  "\tjal x1,%0\n"  1
+reg:  CALLI4(lab)  "\tcall %0\n"  1
+reg:  CALLP4(lab)  "\tcall %0\n"  1
+reg:  CALLU4(lab)  "\tcall %0\n"  1
+stmt: CALLV(lab)  "\tcall %0\n"  1
 
-reg:  CALLF4(reg)  "\tjalr x1,x%0,0\n"  1
-reg:  CALLI4(reg)  "\tjalr x1,x%0,0\n"  1
-reg:  CALLP4(reg)  "\tjalr x1,x%0,0\n"  1
-reg:  CALLU4(reg)  "\tjalr x1,x%0,0\n"  1
-stmt: CALLV(reg)  "\tjalr x1,x%0,0\n"  1
+reg:  CALLF4(reg)  "\tjalr x1, 0(x%0)\n"  1
+reg:  CALLI4(reg)  "\tjalr x1, 0(x%0)\n"  1
+reg:  CALLP4(reg)  "\tjalr x1, 0(x%0)\n"  1
+reg:  CALLU4(reg)  "\tjalr x1, 0(x%0)\n"  1
+stmt: CALLV(reg)  "\tjalr x1, 0(x%0)\n"  1
 
 
 stmt:	RETI4(reg)		"# ret\n"		1
@@ -443,21 +441,21 @@ stmt:	GTF4(freg,freg)     "\tfle.s x11,f%0,f%1\n\tbeq x11,x0,%a\n" (hardfloat?10
 stmt:	LTF4(freg,freg)  "\tflt.s x11,f%0,f%1\n\tbne x11,x0,%a\n" (hardfloat?10:LBURG_MAX)
 stmt:	GEF4(freg,freg)  "\tflt.s x11,f%0,f%1\n\tbeq x11,x0,%a\n" (hardfloat?10:LBURG_MAX)
 
-reg:	ADDF4(reg,reg)		"\tjal x1,float32_add\n"	100
-reg:	SUBF4(reg,reg)		"\tjal x1,float32_sub\n"	100
-reg:	MULF4(reg,reg)		"\tjal x1,float32_mul\n"	100
-reg:	DIVF4(reg,reg)		"\tjal x1,float32_div\n"	100 
+reg:	ADDF4(reg,reg)		"\tcall float32_add\n"	100
+reg:	SUBF4(reg,reg)		"\tcall float32_sub\n"	100
+reg:	MULF4(reg,reg)		"\tcall float32_mul\n"	100
+reg:	DIVF4(reg,reg)		"\tcall float32_div\n"	100 
 reg:	LOADF4(reg)		"\taddi x%c,x%0,0\n"	move100(a)
-reg:	NEGF4(reg)		"\tjal x1,float32_neg\n"	100
+reg:	NEGF4(reg)		"\tcall float32_neg\n"	100
 reg:	CVFF4(reg)		"\t"	100
-reg:	CVIF4(reg)		"\tjal x1,int32_to_float32\n"	100
-reg:	CVFI4(reg)		"\tjal x1,float32_to_int32\n" 	100
-stmt:	EQF4(reg,reg)		"\tjal x1,float32_eq\n\tbne x10,x0,%a\n"   100
-stmt:	LEF4(reg,reg)       "\tjal x1,float32_le\n\tbne x10,x0,%a\n"   100
-stmt:	LTF4(reg,reg)       "\tjal x1,float32_lt\n\tbne x10,x0,%a\n"   100
-stmt:	GEF4(reg,reg)       "\tjal x1,float32_ge\n\tbne x10,x0,%a\n"   100
-stmt:	GTF4(reg,reg)       "\tjal x1,float32_gt\n\tbne x10,x0,%a\n"   100
-stmt:	NEF4(reg,reg)		"\tjal x1,float32_ne\n\tbne x10,x0,%a\n"   100
+reg:	CVIF4(reg)		"\tcall int32_to_float32\n"	100
+reg:	CVFI4(reg)		"\tcall float32_to_int32\n" 	100
+stmt:	EQF4(reg,reg)		"\tcall float32_eq\n\tbne x10,x0,%a\n"   100
+stmt:	LEF4(reg,reg)       "\tcall float32_le\n\tbne x10,x0,%a\n"   100
+stmt:	LTF4(reg,reg)       "\tcall float32_lt\n\tbne x10,x0,%a\n"   100
+stmt:	GEF4(reg,reg)       "\tcall float32_ge\n\tbne x10,x0,%a\n"   100
+stmt:	GTF4(reg,reg)       "\tcall float32_gt\n\tbne x10,x0,%a\n"   100
+stmt:	NEF4(reg,reg)		"\tcall float32_ne\n\tbne x10,x0,%a\n"   100
 
 
 
@@ -719,7 +717,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
   }  
   print("\tlw  x8,%d(x2)\n",framesizeabs-4);  
   print("\taddi  x2,x2,%d\n",framesizeabs);
-  print("\tjalr x0,x1,0\n");
+  print("\tjalr x0,0(x1)\n");
   print("\n");
 }
 
@@ -891,6 +889,14 @@ static void blkstore(int size, int off, int reg, int tmp) {
 static void blkloop(int dreg, int doff,
                     int sreg, int soff,
                     int size, int tmps[]) {
+  /* Copy with copy instruction */
+  print("\tli\tx%d,%d\n", tmps[2], doff);
+  print("\tadd\tx%d,x%d,x%d\n", dreg, dreg, tmps[2]);
+  print("\tli\tx%d,%d\n", tmps[2], soff);
+  print("\tadd\tx%d,x%d,x%d\n", sreg, sreg, tmps[2]);
+  print("\tli\tx%d,%d\n", tmps[2], size);
+  print("\tcopy\tx%d,x%d,tx%d\n", sreg, dreg, tmps[2]);
+  /*
   int label;
 
   label = genlabel(1);
@@ -902,6 +908,7 @@ static void blkloop(int dreg, int doff,
   print("\taddi\tx%d,x%d,-%d\n", tmps[2], tmps[2], 8);
   blkcopy(tmps[2], doff, sreg, soff, 8, tmps);
   print("\tbltu\tx%d,x%d,L.%d\n", dreg, tmps[2], label);
+  */
 }
 
 
@@ -1146,7 +1153,7 @@ static void stabline(Coordinate *cp) {
 //                (*IR->stabline)(&p->src);
 //}
 
-Interface riscv32IR = {
+Interface siriusIR = {
   1, 1, 0,      /* char */
   2, 2, 0,      /* short */
   4, 4, 0,      /* int */
@@ -1157,13 +1164,13 @@ Interface riscv32IR = {
   4, 4, 1,      /* long double */
   4, 4, 0,      /* T * */
   0, 1, 0,      /* struct */
-  1,            /* little_endian */
+  0,            /* little_endian */
   mulops_calls, /* mulops_calls */
   0,            /* wants_callb */
   0,            /* wants_argb */
   1,            /* left_to_right */
   0,            /* wants_dag */
-  0,            /* unsigned_char */
+  1,            /* unsigned_char */
   address,
   blockbeg,
   blockend,

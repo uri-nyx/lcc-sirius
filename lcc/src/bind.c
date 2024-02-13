@@ -3,6 +3,7 @@
 #define yy \
 xx(alpha/osf,    alphaIR) \
 xx(riscv32,    riscv32IR) \
+xx(sirius,    siriusIR) \
 xx(mips/irix,    mipsebIR) \
 xx(sparc/sun,    sparcIR) \
 xx(sparc/solaris,solarisIR) \

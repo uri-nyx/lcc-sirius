@@ -1,13 +1,13 @@
 # $Id$
 BUILDDIR=./bin
-HOSTFILE=etc/linux.c
-LCCDIR=$BUILDDIR
+HOSTFILE?=etc/linux.c
+LCCDIR?=$BUILDDIR
 
 A=.a
 O=.o
 E=
 CC=cc
-CFLAGS=-g -DLCCDIR="\"./bin/\""
+CFLAGS= -O2 -DLCCDIR="\"$(LCCDIR)\"" 
 LDFLAGS=-g
 LD=$(CC)
 AR=ar ruv
@@ -72,7 +72,9 @@ RCCOBJS=$Balloc$O \
 	$Bsparc$O \
 	$Bstab$O \
 	$Bx86$O \
-	$Bx86linux$O
+	$Bx86linux$O \
+	$Bsirius$O 
+
 
 $Brcc$E::	$Bmain$O $Blibrcc$A $(EXTRAOBJS)
 		$(LD) $(LDFLAGS) -o $@ $Bmain$O $(EXTRAOBJS) $Blibrcc$A $(EXTRALIBS)
@@ -119,6 +121,7 @@ $Briscv32$O:	$Briscv32.c;	$(CC) $(CFLAGS) -c -Isrc -o $@ $Briscv32.c
 $Bsparc$O:	$Bsparc.c;	$(CC) $(CFLAGS) -c -Isrc -o $@ $Bsparc.c
 $Bx86$O:	$Bx86.c;	$(CC) $(CFLAGS) -c -Isrc -o $@ $Bx86.c
 $Bx86linux$O:	$Bx86linux.c;	$(CC) $(CFLAGS) -c -Isrc -o $@ $Bx86linux.c
+$Bsirius$O:	$Bsirius.c;	$(CC) $(CFLAGS) -c -Isrc -o $@ $Bsirius.c
 
 $Bdagcheck.c:	$Blburg$E src/dagcheck.md; $Blburg src/dagcheck.md $@
 $Balpha.c:	$Blburg$E src/alpha.md;    $Blburg src/alpha.md    $@
@@ -127,6 +130,7 @@ $Briscv32.c:	$Blburg$E src/riscv32.md;     $Blburg src/riscv32.md     $@
 $Bsparc.c:	$Blburg$E src/sparc.md;    $Blburg src/sparc.md    $@
 $Bx86.c:	$Blburg$E src/x86.md;      $Blburg src/x86.md      $@
 $Bx86linux.c:	$Blburg$E src/x86linux.md; $Blburg src/x86linux.md $@
+$Bsirius.c:	$Blburg$E src/sirius.md; $Blburg src/sirius.md $@
 
 $Bbprint$E:	$Bbprint$O;		$(LD) $(LDFLAGS) -o $@ $Bbprint$O 
 $Bops$E:	$Bops$O;		$(LD) $(LDFLAGS) -o $@ $Bops$O 
