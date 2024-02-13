@@ -7,7 +7,7 @@ A=.a
 O=.o
 E=
 CC=cc
-CFLAGS= -O2 -DLCCDIR="\"$(LCCDIR)\"" 
+CFLAGS= -g -DLCCDIR="\"$(LCCDIR)\"" 
 LDFLAGS=-g
 LD=$(CC)
 AR=ar ruv

@@ -64,3 +64,4 @@ binutils/ar/ar
 binutils/as/as
 binutils/ld/ld
 binutils/dof/dof
+lcc/tmp/

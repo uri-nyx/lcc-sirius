@@ -37,7 +37,7 @@ char *as[] = { LCCDIR "/../../binutils/bin/as",
                0 };
 
 char *ld[] = { LCCDIR "/../../binutils/bin/ld",
-               " ",
+               "",
                "$1", /* other options handed through */
                "-o",
                "$3", /* linker output file */
