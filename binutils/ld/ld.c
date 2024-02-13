@@ -587,6 +587,28 @@ fixupRef (Reloc *rel, int scan)
           fputc ((final >> 0) & 0xFF, file);
         }
       break;
+    case METHOD_JALR12:
+      value = (rel->value - rel->offset - rvcdelta);
+      if ((value & 3))
+        error ("branch not word aligned");
+
+      fseek (file, rel->offset, SEEK_SET);
+      fread (&final, sizeof (final), 1, file);
+
+      value += 4;
+      value &= 0xFFF;
+
+      final = toLE (final) | (value >> 2);
+
+      if (scan == 0)
+        {
+          fseek (file, rel->offset, SEEK_SET);
+          fputc ((final >> 24) & 0xFF, file);
+          fputc ((final >> 16) & 0xFF, file);
+          fputc ((final >> 8) & 0xFF, file);
+          fputc ((final >> 0) & 0xFF, file);
+        }
+      break;
     case METHOD_RL12:
       value = rel->value - rel->offset - rvcdelta + 4
               + segStart[rel->base.segment] - segStart[rel->segment];

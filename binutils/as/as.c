@@ -166,7 +166,7 @@
 /* Jumps */
 #define OP_JAL 0x20
 #define OP_JALR 0x41
-// TODO: add CALL instruction
+#define OP_CALL 0x00
 
 /* System */
 #define OP_CLL 0x02
@@ -2488,6 +2488,27 @@ formatLA (unsigned int code)
 }
 
 void
+formatCALL (unsigned int code)
+{
+  int dst, src1, vcon;
+  Value v;
+  unsigned int immed;
+
+  dst = 1;
+
+  /* load opcode with two register operands and immediate */
+  v = parseExpression ();
+  addFixup (v.sym, currSeg, segPtr[currSeg], METHOD_RH20, v.con);
+  immed = 0;
+  emitWord (OP_AUIPC << 25 | dst << 20);
+  immed = v.con;
+  addFixup (v.sym, currSeg, segPtr[currSeg], METHOD_JALR12, v.con);
+  immed = 0;
+  src1 = dst;
+  emitWord (OP_JALR << 25 | dst << 20 | src1 << 15 | immed);
+}
+
+void
 format1JAL (unsigned int code)
 {
   int dst;
@@ -2895,6 +2916,7 @@ Instr instrTable[] = {
   { "jalr", formatJR, OP_JALR },
   { "ret", formatRET, OP_JALR },
   { "jr", formatJ0R, OP_JALR },
+  { "call", formatCALL, OP_CALL },
   /* immediate instructions */
   { "addi", format2, OP_ADDI },
   { "mv", formatMv, OP_ADDI },
@@ -3293,7 +3315,7 @@ writeSymbol (Symbol *s)
       /* this symbol is neither defined here nor referenced here: skip */
       return;
     }
-  symRec.name = stringSize;
+  symRec.name = toBE(stringSize);
   if (s->status == STATUS_UNKNOWN)
     {
       symRec.type = toBE(MSB);

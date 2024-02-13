@@ -1,16 +1,17 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c,assembler
 # Edit at https://www.toptal.com/developers/gitignore?templates=c,assembler
-
+lcc/**/bin/
 ### Assembler ###
 *.exe
 *.o
 *.obj
 *.bc
-
+*.bin
+__.SYMDEF
 ### C ###
 # Prerequisites
 *.d
-
+depend.mak
 # Object files
 *.ko
 *.elf
@@ -59,3 +60,7 @@ Mkfile.old
 dkms.conf
 
 # End of https://www.toptal.com/developers/gitignore/api/c,assembler
+binutils/ar/ar
+binutils/as/as
+binutils/ld/ld
+binutils/dof/dof

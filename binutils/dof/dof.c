@@ -20,12 +20,18 @@
 FILE *inFile;
 ExecHeader execHeader;
 char *segmentName[4] = { "ABS", "CODE", "DATA", "BSS" };
-char *methodName[6] = { "W32" , "R12" , "RL12" , "RH20", "RS12","J20" };
+char *methodName[7] = { "W32" , "R12" , "RL12" , "RH20", "RS12","J20", "JALR12" };
 
 
 
 /**************************************************************/
 
+unsigned int
+toLE (unsigned int num)
+{
+  return ((num & 0xff000000) >> 24) | ((num & 0x00ff0000) >> 8)
+         | ((num & 0x0000ff00) << 8) | (num << 24);
+}
 
 void error(char *fmt, ...) {
   va_list ap;
@@ -66,9 +72,18 @@ void dumpHeader(int opt) {
   if (fread(&execHeader, sizeof(ExecHeader), 1, inFile) != 1) {
     error("cannot read exec header");
   }
-  if (execHeader.magic != EXEC_MAGIC) {
+  if (execHeader.magic != toLE(EXEC_MAGIC)) {
     error("wrong magic number in exec header");
   }
+  execHeader.magic = toLE (execHeader.magic);
+  execHeader.csize = toLE (execHeader.csize);
+  execHeader.dsize = toLE (execHeader.dsize);
+  execHeader.bsize = toLE (execHeader.bsize);
+  execHeader.crsize = toLE (execHeader.crsize);
+  execHeader.drsize = toLE (execHeader.drsize);
+  execHeader.symsize = toLE (execHeader.symsize);
+  execHeader.strsize = toLE (execHeader.strsize);
+
   if(opt==0) {
   printf("Header\n");
   printf("    size of code         : %8u bytes\n", execHeader.csize);
@@ -156,9 +171,15 @@ void dumpRelocs(unsigned int totalSize) {
     if (fread(&relRec, sizeof(RelocRecord), 1, inFile) != 1) {
       error("cannot read relocation record");
     }
+
+    relRec.base = toLE (relRec.base);
+    relRec.method = toLE (relRec.method);
+    relRec.offset = toLE (relRec.offset);
+    relRec.value = toLE (relRec.value);
+
     printf("    %d:\n", n);
     printf("        offset  = 0x%08X\n", relRec.offset);
-    if (relRec.method < 0 || relRec.method > 5) {
+    if (relRec.method < 0 || relRec.method > 6) {
       error("illegal relocation method");
     }
     printf("        method  = %s\n", methodName[relRec.method]);
@@ -232,8 +253,15 @@ void dumpSymbolTable(void) {
     if (fread(&symRec, sizeof(SymbolRecord), 1, inFile) != 1) {
       error("cannot read symbol record");
     }
+    symRec.debug = toLE (symRec.debug);
+    symRec.debugtype = toLE (symRec.debugtype);
+    symRec.debugvalue = toLE (symRec.debugvalue);
+    symRec.name = toLE (symRec.name);
+    symRec.type = toLE (symRec.type);
+    symRec.value = toLE (symRec.value);
     printf("    %d:\n", n);
     printf("        name    = ");
+
     dumpString(symRec.name);
     printf("\n");
     if (symRec.type & MSB) {
@@ -264,6 +292,12 @@ void dumpUndefined(void) {
     if (fread(&symRec, sizeof(SymbolRecord), 1, inFile) != 1) {
       error("cannot read symbol record");
     }
+    symRec.debug = toLE (symRec.debug);
+    symRec.debugtype = toLE (symRec.debugtype);
+    symRec.debugvalue = toLE (symRec.debugvalue);
+    symRec.name = toLE (symRec.name);
+    symRec.type = toLE (symRec.type);
+    symRec.value = toLE (symRec.value);
     if (symRec.type & MSB) {
       dumpString(symRec.name);
       printf("\n");
