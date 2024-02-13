@@ -1449,6 +1449,7 @@ readlibsymbols (char *libname)
   char *symnameptr = &symname[0];
   char *filenameptr = &filename[0];
 
+  /* TODO: here should be code to handle directives like -Ldir*/
   libfile = fopen (libname, "r");
   if (libfile == NULL)
     {

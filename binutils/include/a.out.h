@@ -16,7 +16,7 @@
 #define METHOD_RH20	3	/* write low 20 bit relative to PC */
 #define METHOD_RS12	4	/* write low 12 bit relative to PC*/
 #define METHOD_J20	5	/* write branch 20 bit relative to PC*/
-#define METHOD_JALR12		/* write branch 20 bit relative to PC*/
+#define METHOD_JALR12	6	/* write branch 20 bit relative to PC*/
 
 #define SEGMENT_ABS	0	/* absolute values */
 #define SEGMENT_CODE	1	/* code segment */
