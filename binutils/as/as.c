@@ -2928,7 +2928,7 @@ Instr instrTable[] = {
   { "shlli", format2, OP_SLLI },
   { "shrli", format2, OP_SRLI },
   { "shrai", format2, OP_SRAI },
-  { "mul", format4, OP_MUL },
+  { "imul", format4, OP_MUL },
   { "mulih", format2, OP_MULIH },
   { "muli", format2, OP_MULI },
   /*{ "mulhu",   formatR, OP_MULHU  },*/

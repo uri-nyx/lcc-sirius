@@ -1,0 +1,52 @@
+{
+    "configurations": [
+        {
+            "name": "Sub C (gcc)",
+            "includePath": [
+                "${workspaceFolder}/utils/scc/include/",
+                "${workspaceFolder}/src/kernel/**"
+            ],
+            "defines": [
+                "__LINT"
+            ],
+            "windowsSdkVersion": "10.0.22000.0",
+            "cStandard": "c89",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [
+                "-nostdinc",
+                "-I${workspaceFolder}/utils/scc/include"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src/kernel/include"
+                ]
+            },
+            "compilerPath": "/usr/bin/clang"
+        },
+        {
+            "name": "LCC",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "cppStandard": "gnu++98",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cStandard": "c89",
+            "mergeConfigurations": false,
+            "compilerPath": "/usr/bin/clang",
+            "browse": {
+                "path": [
+                    "/home/uri/lcc-sirius/**",
+                    "/home/uri/lcc-sirius"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "compilerArgs": [
+                "-nostdinc"
+            ],
+            "compilerPathInCppPropertiesJson": "/usr/bin/clang"
+        }
+    ],
+    "version": 4
+}
