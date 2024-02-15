@@ -65,3 +65,5 @@ binutils/as/as
 binutils/ld/ld
 binutils/dof/dof
 lcc/tmp/
+binutils/ld/ld.c
+binutils/as/custom.bin

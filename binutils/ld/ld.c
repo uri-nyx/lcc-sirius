@@ -574,7 +574,7 @@ fixupRef (Reloc *rel, int scan)
       fseek (file, rel->offset, SEEK_SET);
       fread (&final, sizeof (final), 1, file);
 
-      value &= 0x7FFF;
+      value &= 0x1FFFF;
 
       final = toLE (final) | (value >> 2);
 
@@ -591,7 +591,6 @@ fixupRef (Reloc *rel, int scan)
       value = (rel->value - rel->offset - rvcdelta);
       if ((value & 3))
         error ("branch not word aligned");
-
       fseek (file, rel->offset, SEEK_SET);
       fread (&final, sizeof (final), 1, file);
 
