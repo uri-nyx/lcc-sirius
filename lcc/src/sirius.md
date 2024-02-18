@@ -895,7 +895,7 @@ static void blkloop(int dreg, int doff,
   print("\tli\tx%d,%d\n", tmps[2], soff);
   print("\tadd\tx%d,x%d,x%d\n", sreg, sreg, tmps[2]);
   print("\tli\tx%d,%d\n", tmps[2], size);
-  print("\tcopy\tx%d,x%d,tx%d\n", sreg, dreg, tmps[2]);
+  print("\tcopy\tx%d,x%d,x%d\n", sreg, dreg, tmps[2]);
   /*
   int label;
 
