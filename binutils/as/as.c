@@ -357,12 +357,6 @@ inurange (int bits, int val)
   return ((val <= (msb - 1) && val >= ll) ? 1 : 0);
 }
 
-int
-rvcreg (int reg)
-{
-  return ((reg >= 8 && reg <= 15) ? 1 : 0);
-}
-
 unsigned int
 countbits (int n)
 {
@@ -375,28 +369,7 @@ countbits (int n)
   return count;
 }
 
-typedef struct csrnames
-{
-  char *name;
-  unsigned int code;
-} Csr;
-
-Csr csrTable[] = {
-  /* pseudo instructions */
-  { "mstatus", 0x300 }, { "mie", 0x304 },    { "mtvec", 0x305 },
-  { "mepc", 0x341 },    { "mcause", 0x342 }, { NULL, 0 },
-};
-
 void error (char *fmt, ...);
-unsigned int
-getcsrcode (char *str)
-{
-  unsigned int i;
-  for (i = 0; csrTable[i].name; i++)
-    if (strcmp (csrTable[i].name, str) == 0)
-      return (csrTable[i].code);
-  error ("invalid csr name '%s'", str);
-}
 
 /**************************************************************/
 
@@ -504,30 +477,6 @@ getNextToken (void)
                      lineno);
             }
           return TOK_IREGISTER;
-        }
-    }
-  if (*lineptr == 'f')
-    {
-      lineptr++;
-      if (!isdigit ((int)*lineptr))
-        {
-          lineptr--;
-        }
-      else
-        {
-          tokenvalNumber = 0;
-          while (isdigit ((int)*lineptr))
-            {
-              digit = *lineptr++ - '0';
-              tokenvalNumber *= 10;
-              tokenvalNumber += digit;
-            }
-          if (tokenvalNumber < 0 || tokenvalNumber >= NUM_REGS)
-            {
-              error ("illegal register number %d in line %d", tokenvalNumber,
-                     lineno);
-            }
-          return TOK_FREGISTER;
         }
     }
   if (*lineptr == '.' && *(lineptr + 1) == '+')
@@ -2854,6 +2803,7 @@ Instr instrTable[] = {
   { ".bss", dotBss, 0 },
   { ".globl", dotExport, 0 },
   { ".import", dotImport, 0 },
+  { ".extern", dotImport, 0 },
   { ".align", dotAlign, 0 },
   { ".p2align", dotAlign, 0 },
   { ".space", dotSpace, 0 },
