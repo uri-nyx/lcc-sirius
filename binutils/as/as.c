@@ -2879,10 +2879,12 @@ Instr instrTable[] = {
   { "shrli", format2, OP_SRLI },
   { "shrai", format2, OP_SRAI },
   { "imul", format4, OP_MUL },
+  { "umul", format4, OP_MUL },
   { "mulih", format2, OP_MULIH },
   { "muli", format2, OP_MULI },
   /*{ "mulhu",   formatR, OP_MULHU  },*/
   { "idiv", format4, OP_DIV },
+  { "udiv", format4, OP_DIV },
   { "idivi", format2, OP_DIVI },
   /*{ "divu",    formatR, OP_DIVU  },
   { "rem",     format4, OP_REM  },
