@@ -614,7 +614,7 @@ fixupRef (Reloc *rel, int scan)
       fseek (file, rel->offset, SEEK_SET);
       fread (&final, sizeof (final), 1, file);
 
-      value &= 0x7FFF;
+      value &= 0xFFF;
       final = toLE (final) | value;
 
       if (scan == 0)
@@ -1502,7 +1502,7 @@ extractfilefromlib (char *libname, char *filename)
       printf ("error: cannot open library file\n");
       exit (1);
     }
-  if (fread (&arMagic, sizeof (arMagic), 1, in) != 1 || arMagic != toLE(AR_MAGIC))
+  if (fread (&arMagic, sizeof (arMagic), 1, in) != 1 || arMagic != AR_MAGIC)
     {
       printf ("ar: not in archive format\n");
       fclose (in);
