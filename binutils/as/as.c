@@ -1956,32 +1956,25 @@ void
 dotAlign (unsigned int code)
 {
   Value v;
-  unsigned int mask;
+  unsigned int padding_to_emit;
 
   v = parseExpression ();
   if (v.sym != NULL)
     {
       error ("absolute expression expected in line %d", lineno);
     }
-  mask = (1 << v.con) - 1;
-  while ((segPtr[currSeg] & mask) != 0)
+
+  if (v.con != 0 && (v.con & (v.con - 1)) == 0) {
+    padding_to_emit = ((segPtr[currSeg] + (n - 1)) & ~(n - 1)) - segPtr[currSeg];
+    while (padding_to_emit--)
     {
-      if (mask & 1)
-        {
-          emitByte (0x0);
-        }
-      else
-        {
-          if (mask & 2)
-            {
-              emitHalf (0x1);
-            }
-          else
-            {
-              emitWord (0x13);
-            }
-        }
+      emitByte(0);
     }
+    
+  } else {
+    error("epxression in alignment must be a power of 2, line %d", lineno);
+  }
+  
   while (token != TOK_EOL)
     getToken ();
 }
@@ -2810,6 +2803,7 @@ Instr instrTable[] = {
   { ".locate", dotLocate, 0 },
   { ".byte", dotByte, 0 },
   { ".asciz", dotByte, 0 },
+  { ".ascii", dotByte, 0 },
   { ".half", dotHalf, 0 },
   { ".short", dotHalf, 0 },
   { ".word", dotWord, 0 },
