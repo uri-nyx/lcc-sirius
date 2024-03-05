@@ -1965,7 +1965,7 @@ dotAlign (unsigned int code)
     }
 
   if (v.con != 0 && (v.con & (v.con - 1)) == 0) {
-    padding_to_emit = ((segPtr[currSeg] + (n - 1)) & ~(n - 1)) - segPtr[currSeg];
+    padding_to_emit = ((segPtr[currSeg] + (v.con - 1)) & ~(v.con - 1)) - segPtr[currSeg];
     while (padding_to_emit--)
     {
       emitByte(0);
@@ -1974,7 +1974,7 @@ dotAlign (unsigned int code)
   } else {
     error("epxression in alignment must be a power of 2, line %d", lineno);
   }
-  
+
   while (token != TOK_EOL)
     getToken ();
 }
