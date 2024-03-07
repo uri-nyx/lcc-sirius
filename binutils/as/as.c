@@ -68,7 +68,7 @@
 #define OP_OR 0x64
 #define OP_XOR 0x66
 #define OP_MUL 0x63
-#define OP_UMUL 0x163
+#define OP_IMUL 0x163
 #define OP_MULIH 0x51
 #define OP_MULI 0x50
 /*#define OP_MULHU        0x*/
@@ -2874,8 +2874,8 @@ Instr instrTable[] = {
   { "shlli", format2, OP_SLLI },
   { "shrli", format2, OP_SRLI },
   { "shrai", format2, OP_SRAI },
-  { "imul", format4, OP_MUL },
-  { "umul", format4, OP_UMUL },
+  { "imul", format4, OP_IMUL },
+  { "umul", format4, OP_MUL },
   { "mulih", format2, OP_MULIH },
   { "muli", format2, OP_MULI },
   /*{ "mulhu",   formatR, OP_MULHU  },*/
