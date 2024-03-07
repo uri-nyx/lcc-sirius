@@ -68,10 +68,12 @@
 #define OP_OR 0x64
 #define OP_XOR 0x66
 #define OP_MUL 0x63
+#define OP_UMUL 0x163
 #define OP_MULIH 0x51
 #define OP_MULI 0x50
 /*#define OP_MULHU        0x*/
 #define OP_DIV 0x62
+#define OP_UDIV 0x162
 #define OP_DIVI 0x52
 /*
 #define OP_DIVU         0x
@@ -2187,7 +2189,7 @@ format4 (unsigned int code)
   src3 = tokenvalNumber;
   getToken ();
   emitWord ((code & 0x7F) << 25 | dst << 20 | src1 << 15 | src2 << 10
-            | src3 << 5);
+            | src3 << 5 | (code & 0x100) ? 1 : 0 /*handle udiv and umul*/ );
 }
 
 void
@@ -2873,12 +2875,12 @@ Instr instrTable[] = {
   { "shrli", format2, OP_SRLI },
   { "shrai", format2, OP_SRAI },
   { "imul", format4, OP_MUL },
-  { "umul", format4, OP_MUL },
+  { "umul", format4, OP_UMUL },
   { "mulih", format2, OP_MULIH },
   { "muli", format2, OP_MULI },
   /*{ "mulhu",   formatR, OP_MULHU  },*/
   { "idiv", format4, OP_DIV },
-  { "udiv", format4, OP_DIV },
+  { "udiv", format4, OP_UDIV },
   { "idivi", format2, OP_DIVI },
   /*{ "divu",    formatR, OP_DIVU  },
   { "rem",     format4, OP_REM  },
