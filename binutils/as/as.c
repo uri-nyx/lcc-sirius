@@ -2190,11 +2190,7 @@ format4 (unsigned int code)
   src3 = tokenvalNumber;
   getToken ();
   emitWord ((code & 0x7F) << 25 | dst << 20 | src1 << 15 | src2 << 10
-            | src3 << 5 /*| (code & 0x100) ? 1 : 0 /* handle udiv and umul */ );
-  c =  ((code & 0x7F) << 25 | dst << 20 | src1 << 15 | src2 << 10
-            | src3 << 5 | (code & 0x100) ? 1 : 0 /* handle udiv and umul */ );
-  printf("Special instruction %x", c);
-  
+            | src3 << 5 | ((code & 0x100) ? 1 : 0 /* handle udiv and umul */ ));
 }
 
 void
