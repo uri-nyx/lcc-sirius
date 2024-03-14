@@ -346,8 +346,8 @@ reg: SUBP4(reg,cons15)   "\taddi x%c,x%0,-%1\n"  1
 reg: SUBU4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
 reg: SUBU4(reg,CVIU4(cons15))   "\taddi x%c,x%0,-%1\n"  1
 reg: NEGI4(reg)   "\tsub x%c,x0,x%0\n" 1
-reg: BCOMI4(reg)   "\txori x%c,x%0,-1\n" 1
-reg: BCOMU4(reg)   "\txori x%c,x%0,-1\n" 1
+reg: BCOMI4(reg)   "\tnot x%c,x%0\n" 1
+reg: BCOMU4(reg)   "\tnot x%c,x%0\n" 1
 
 con5:	CNSTU4			"%a"			range(a, 0, 31)
 
