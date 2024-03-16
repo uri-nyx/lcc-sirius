@@ -1755,6 +1755,9 @@ main (int argc, char *argv[])
               strcpy (destfile, outpath);
               strcat (destfile, Sym->filename);
             }
+            else {
+              error ("Symbol '%s' not found", element);
+            }
 
           if (Sym && stat (destfile, &buf) != 0)
             {
