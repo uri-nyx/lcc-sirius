@@ -1057,7 +1057,7 @@ readSymbols (void)
           if ((sym->type & MSB) == 0)
             {
               /* the symbol was already defined in the table */
-              printf ("symbol '%s' multiply defined!\n\r", sym->name);
+              printf ("symbol '%s' ply defined!\n\r", sym->name);
             }
           else
             {

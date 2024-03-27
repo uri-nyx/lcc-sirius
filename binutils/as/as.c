@@ -184,6 +184,7 @@
 #define OP_MMUMAP 0x08
 #define OP_MMUUNMAP 0x09
 #define OP_MMUSTAT 0x0a
+#define OP_MMUGETFRAME 0x10a
 #define OP_MMUSPT 0x0b
 #define OP_MMUUPDATE 0x0c
 #define OP_MMUSW 0x0e
@@ -2708,6 +2709,22 @@ formatMMU (unsigned int code)
       getToken ();
       emitWord (code << 25 | r1 << 20 | r2 << 15 | r3 << 10 );
       break;
+    case OP_MMUGETFRAME:
+          expect (TOK_IREGISTER);
+      r1 = tokenvalNumber;
+      getToken ();
+      expect (TOK_COMMA);
+      getToken ();
+      expect (TOK_IREGISTER);
+      r2 = tokenvalNumber;
+      getToken ();
+      expect (TOK_COMMA);
+      getToken ();
+      expect (TOK_IREGISTER);
+      r3 = tokenvalNumber;
+      getToken ();
+      emitWord (code&0xf << 25 | r1 << 20 | r2 << 15 | r3 << 10 | 1);
+      break;
     case OP_MMUSPT:
       expect (TOK_IREGISTER);
       r1 = tokenvalNumber;
@@ -2948,6 +2965,7 @@ Instr instrTable[] = {
   { "mmu.map", formatMMU, OP_MMUMAP },
   { "mmu.unmap", formatMMU, OP_MMUUNMAP },
   { "mmu.stat", formatMMU, OP_MMUSTAT },
+  { "mmu.getframe", formatMMU, OP_MMUGETFRAME },
   { "mmu.setpt", formatMMU, OP_MMUSPT },
   { "mmu.update", formatMMU, OP_MMUUPDATE },
   { "mmu.switch", formatMMU, OP_MMUSW },
