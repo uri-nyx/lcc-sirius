@@ -37,7 +37,7 @@ unsigned long	_pInfinity[2]	= { 0x00000000, 0x7FF00000 };
 unsigned long	_qNaN[2]	= { 0x00000000, 0x7FF80000 };
 unsigned long	_sNaN[2]	= { 0x00000001, 0x7FF00000 };
 
-#else	/* defined(__MIPSEL__) */
+#else	/* defined() */
 
 unsigned long	_mInfinity[2]	= { 0xFFF00000, 0x00000000 };
 unsigned long	_pInfinity[2]	= { 0x7FF00000, 0x00000000 };

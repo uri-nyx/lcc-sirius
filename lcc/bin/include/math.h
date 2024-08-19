@@ -8,7 +8,7 @@
 #define  __MATH_H__
 
 #include <ieee.h>			/* to define _pInfinity */
-//#include <softfloat.h>
+#include <softfloat.h>
 
 #if	defined(__cplusplus)
 extern	"C"	{

@@ -1,31 +1,28 @@
 #
 # Makefile for Libs
 
-LCCDIR =../..
+# LCCDIR =../..
 CC = ${LCCDIR}/lcc
 AS = ${LCCDIR}/../../binutils/bin/as
 AR = ${LCCDIR}/../../binutils/bin/ar
 
-CFLAGS = -Wo-lccdir=${LCCDIR} -S -D__TCS_V2__ -D__MIPSEL__ -w -v
+CFLAGS = -S -D__TCS_V2__ -w -v
 
 
-CSRCS = $(wildcard *.c)
-ASRCS = $(patsubst %.c,%.s,$(CSRCS))
-OSRCS = $(patsubst %.c,%.o,$(CSRCS))
-BIN = ${CURDIR}.lib
+BIN = ${CURDIR}.a
 
 .PHONY:		all clean
 
 all:		$(BIN)
 
-%.s:%.c
+softfloat.s:softfloat.c
 	$(CC) $(CFLAGS) $<
 
-%.o:%.s
+softfloat.o:softfloat.s
 	$(AS) -o $@ $<
 
-$(BIN):$(OSRCS)
+$(BIN):softfloat.o
 	$(AR) -rsv $@ $^
 
 clean:
-		rm -f *~ $(OSRCS) $(ASRCS) $(BIN)
+		rm -f *~ softfloat.o softfloat.s $(BIN)
