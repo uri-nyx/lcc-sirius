@@ -88,6 +88,7 @@ typedef struct reloc {
 typedef struct symbol {
         char *name; /* name of symbol */
         char *filename;
+        char *library; /* library in which symbol is defined */
         int   type; /* if MSB = 0: the symbol's segment */
         /* if MSB = 1: the symbol is undefined */
         int value; /* if symbol defined: the symbol's value */
@@ -671,8 +672,8 @@ void relocateSegments(void)
 Symbol *symbolTable    = NULL;
 Symbol *libsymbolTable = NULL;
 
-Symbol *newSymbol(char *name, char *filename, int debug, int debugtype,
-                  int debugvalue)
+Symbol *newSymbol(char *name, char *filename, char *libname, int debug,
+                  int debugtype, int debugvalue)
 {
         Symbol *p;
 
@@ -684,6 +685,11 @@ Symbol *newSymbol(char *name, char *filename, int debug, int debugtype,
                 strcpy(p->filename, filename);
         } else
                 p->filename = NULL;
+        if (libname) {
+                p->library = allocateMemory(strlen(libname) + 1);
+                strcpy(p->library, libname);
+        } else
+                p->library = NULL;
         p->type       = MSB;
         p->value      = 0;
         p->left       = NULL;
@@ -695,15 +701,16 @@ Symbol *newSymbol(char *name, char *filename, int debug, int debugtype,
         return p;
 }
 
-Symbol *lookupEnter(Symbol **table, char *name, char *filename, int debug,
-                    int debugtype, int debugvalue)
+Symbol *lookupEnter(Symbol **table, char *name, char *filename, char *libname,
+                    int debug, int debugtype, int debugvalue)
 {
         Symbol *p, *q, *r;
         int     cmp;
 
         p = *table;
         if (p == NULL) {
-                r = newSymbol(name, filename, debug, debugtype, debugvalue);
+                r      = newSymbol(name, filename, libname, debug, debugtype,
+                                   debugvalue);
                 *table = r;
                 return r;
         }
@@ -719,7 +726,7 @@ Symbol *lookupEnter(Symbol **table, char *name, char *filename, int debug,
                         p = q->right;
                 }
                 if (p == NULL) {
-                        r = newSymbol(name, filename, debug, debugtype,
+                        r = newSymbol(name, filename, libname, debug, debugtype,
                                       debugvalue);
                         if (cmp < 0) {
                                 q->left = r;
@@ -926,7 +933,7 @@ void readSymbols(void)
                 symRec.value      = toLE(symRec.value);
 
                 readString(symRec.name, strBuf, MAX_STRLEN);
-                sym = lookupEnter(&symbolTable, strBuf, NULL, symRec.debug,
+                sym = lookupEnter(&symbolTable, strBuf, NULL, NULL, symRec.debug,
                                   symRec.debugtype, symRec.debugvalue);
                 if ((symRec.type & MSB) == 0) {
                         /* the symbol is defined in this symbol record */
@@ -1305,7 +1312,7 @@ int readlibsymbols(char *libname)
                 symnameptr[strlen(symnameptr) - 1] = '\0';
                 getdelim(&filenameptr, &n, ',', libfile);
                 filenameptr[strlen(filenameptr) - 1] = '\0';
-                lookupEnter(&libsymbolTable, symnameptr, filenameptr, 0, 0, 0);
+                lookupEnter(&libsymbolTable, symnameptr, filenameptr, libname, 0, 0, 0);
         }
         fclose(libfile);
         return (0);
@@ -1556,9 +1563,9 @@ restart:
 
                         if (found && Sym && stat(destfile, &buf) != 0) {
                                 printf("Extracting %s for %s from archive %s\r\n",
-                                       Sym->filename, Sym->name, libName);
+                                       Sym->filename, Sym->name, Sym->library);
                                 setcstr_erase(undefset, Sym->name);
-                                extractfilefromlib(libName, Sym->filename);
+                                extractfilefromlib(Sym->library, Sym->filename);
                                 extracted = 1;
                         }
 
