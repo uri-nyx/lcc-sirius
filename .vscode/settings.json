@@ -1,9 +1,0 @@
-{
-    "c-cpp-flylint.language": "c",
-    "c-cpp-flylint.clang.executable": "/usr/bin/clang",
-    "c-cpp-flylint.clang.pedantic": true,
-    "c-cpp-flylint.cppcheck.enable": false,
-    "c-cpp-flylint.flexelint.enable": false,
-    "c-cpp-flylint.flawfinder.enable": false,
-    "c-cpp-flylint.lizard.enable": false
-}
