@@ -101,8 +101,8 @@
 
 /* Block ops */
 #define OP_COPY   0x10
-#define OP_COPYMD 0x110
-#define OP_COPYDM 0x210
+#define OP_COPYDM 0x110
+#define OP_COPYMD 0x210
 #define OP_COPYDD 0x310
 #define OP_SWAP   0x11
 #define OP_SWAPMD 0x111
