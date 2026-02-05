@@ -35,7 +35,7 @@
  *   x28   temporary register (caller-save)
  *   x29   temporary register (caller-save)
  *   x30   temporary register (caller-save)
- *   x31   temporary register (caller-save)
+ *   x31  system reserved register DO NOT USE
  * caller-save registers are not preserved across procedure calls
  * callee-save registers are preserved across procedure calls
  *
@@ -1014,18 +1014,18 @@ static void target(Node p) {
     case CALL+I:
     case CALL+P:
     case CALL+U:    
-      rtarget(p, 0, ireg[31]);
+      /*rtarget(p, 0, ireg[31]);*/
       setreg(p, ireg[10]);
       break;
     case CALL+F:
-      rtarget(p, 0, ireg[31]);
+      /*rtarget(p, 0, ireg[31]);*/
       if(hardfloat)
         setreg(p, freg[10]);
       else 
         setreg(p, ireg[10]);
       break;
     case CALL+V:
-      rtarget(p, 0, ireg[31]);
+      /*rtarget(p, 0, ireg[31]);*/
       break;
     case RET+I:
     case RET+P:

@@ -11,9 +11,9 @@ char inputs[256] = "";
 char *cpp[] = { LCCDIR "ucpp",
                 "-DLANGUAGE_C",
                 "-D_LANGUAGE_C",
-                "-DION",
-                "-D_ION",
-                "-Dion",
+                "-DAKAI",
+                "-D__TALEA__",
+                "-D__SIRIUS__",
                 "-zI",
                 "$1", /* preprocessor include directory */
                 "$2", /* preprocessor input file */
