@@ -11,7 +11,7 @@ char inputs[256] = "";
 char *cpp[] = { LCCDIR "ucpp",
                 "-DLANGUAGE_C",
                 "-D_LANGUAGE_C",
-                "-DAKAI",
+                "-D_AKAI_",
                 "-D__TALEA__",
                 "-D__SIRIUS__",
                 "-zI",

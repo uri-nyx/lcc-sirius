@@ -10,8 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../include/a.out.h"
-#include "../include/dbg.h"
+#include "a.out.h"
+#include "dbg.h"
 #include "dwarf.h"
 #include "stab.h"
 
@@ -100,20 +100,21 @@
 #define OP_ROL  0x6f
 
 /* Block ops */
-#define OP_COPY   0x10
-#define OP_COPYDM 0x110
-#define OP_COPYMD 0x210
-#define OP_COPYDD 0x310
-#define OP_SWAP   0x11
-#define OP_SWAPMD 0x111
-#define OP_SWAPDM 0x211
-#define OP_SWAPDD 0x311
-#define OP_FILL   0x12
-#define OP_FILLH  0x112
-#define OP_FILLSQ 0x212
-#define OP_FILLW  0x312
-#define OP_THRO   0x13
-#define OP_FROM   0x14
+#define OP_COPY    0x10
+#define OP_COPYDM  0x110
+#define OP_COPYMD  0x210
+#define OP_COPYDD  0x310
+#define OP_COPYBCK 0x410
+#define OP_SWAP    0x11
+#define OP_SWAPMD  0x111
+#define OP_SWAPDM  0x211
+#define OP_SWAPDD  0x311
+#define OP_FILL    0x12
+#define OP_FILLH   0x112
+#define OP_FILLSQ  0x212
+#define OP_FILLW   0x312
+#define OP_THRO    0x13
+#define OP_FROM    0x14
 
 /* Stack ops */
 #define OP_POPB  0x15
@@ -1952,7 +1953,7 @@ void format3CSF(unsigned int code)
         getToken();
         direction = (code & 0xf00) >> 8;
         emitWord((code & 0x7F) << 25 | dst << 20 | src1 << 15 | src2 << 10 |
-                 direction & 0x3);
+                 direction & 0x7);
 }
 
 void format2B(unsigned int code)
@@ -2629,6 +2630,7 @@ Instr instrTable[] = {
         { "swd", format2S, OP_SWD },
         /* Block ops */
         { "copy", format3CSF, OP_COPY },
+        { "copybck", format3CSF, OP_COPYBCK },
         { "copymd", format3CSF, OP_COPYMD },
         { "copydm", format3CSF, OP_COPYDM },
         { "copydd", format3CSF, OP_COPYDD },
