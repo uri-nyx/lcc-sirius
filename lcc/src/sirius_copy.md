@@ -1,7 +1,7 @@
 %{
 
 /*
- * riscv32.md -- RISCV-32bit back-end specification
+ * sirius.md -- Sirius 32bit back-end specification
  *
  * register usage:
  *   x0   always zero
@@ -75,7 +75,6 @@ static void target(Node);
 static void clobber(Node);
 static int mulops_calls(int op);
 static int move100(Node p);
-static int movehard(Node p);
 extern void stabend(Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *); 
 
 #define INTTMP	0x700000E0
@@ -84,8 +83,8 @@ extern void stabend(Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *);
 
 static Symbol ireg[32];
 static Symbol iregw;
-static Symbol blkreg;
-static int tmpregs[] = { 28, 6, 7 };
+static int tmpregs[] = { 7 };
+
 
 %}
 
@@ -255,18 +254,17 @@ con:	CNSTU4			"%a"
 stmt:	reg			""
 
 
-
 lab:   ADDRGP4     "%a"
 reg:	lab			"\tla x%c,%0\n"	1
 reg:    con         "\tli x%c,%0\n" 1
 
-reg: CNSTI1  "# reg\n"  range(a, 0, 0)
-reg: CNSTI2  "# reg\n"  range(a, 0, 0)
-reg: CNSTI4  "# reg\n"  range(a, 0, 0)
-reg: CNSTU1  "# reg\n"  range(a, 0, 0)
-reg: CNSTU2  "# reg\n"  range(a, 0, 0)
-reg: CNSTU4  "# reg\n"  range(a, 0, 0)
-reg: CNSTP4  "# reg\n"  range(a, 0, 0) 
+reg: CNSTI1  "#reg" 0
+reg: CNSTI2  "#reg" 0
+reg: CNSTI4  "#reg" 0
+reg: CNSTU1  "#reg" 0
+reg: CNSTU2  "#reg" 0
+reg: CNSTU4  "#reg" 0
+reg: CNSTP4  "#reg" 0 
 
 addr:	reg			"0(x%0)"
 addr:	ADDRFP4			"%a+%F(x8)"
@@ -283,7 +281,7 @@ stmt:	ASGNP4(addr,reg)	"\tsw x%1,%0\n"	1
 stmt:	ASGNU1(addr,reg)	"\tsb x%1,%0\n"	1
 stmt:	ASGNU2(addr,reg)	"\tsh x%1,%0\n"	1
 stmt:	ASGNU4(addr,reg)	"\tsw x%1,%0\n"	1
-stmt:	ASGNF4(addr,reg)	"\tsw x%1,%0\n"	1
+stmt:	ASGNF4(addr,reg)	"\tsw x%1,%0\n"	100
 
 reg:	INDIRI1(addr)		"\tlb x%c,%0\n"	1
 reg:	INDIRI2(addr)		"\tlh x%c,%0\n"	1
@@ -292,7 +290,7 @@ reg:	INDIRP4(addr)		"\tlw x%c,%0\n"	1
 reg:	INDIRU1(addr)		"\tlbu x%c,%0\n"	1
 reg:	INDIRU2(addr)		"\tlhu x%c,%0\n"	1
 reg:	INDIRU4(addr)		"\tlw x%c,%0\n"	1
-reg:	INDIRF4(addr)		"\tlw x%c,%0\n"	1
+reg:	INDIRF4(addr)		"\tlw x%c,%0\n"	100
 
 
 reg:	CVII4(INDIRI1(addr))	"\tlb x%c,%0\n"	1
@@ -313,9 +311,12 @@ cons15: CNSTI4 "%a" range(a,-16384,16383)
 
 reg: ADDI4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
 reg: ADDI4(reg,cons15) "\taddi x%c,x%0,%1\n"  1
+reg: ADDI4(reg,CVIU4(cons15)) "\taddi x%c,x%0,%1\n"  1
 reg: ADDP4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
+reg: ADDP4(reg,cons15)        "\taddi x%c,x%0,%1\n"  1
 reg: ADDP4(reg,CVIU4(cons15)) "\taddi x%c,x%0,%1\n"  1
 reg: ADDU4(reg,reg)   "\tadd x%c,x%0,x%1\n"  1
+reg: ADDU4(reg,cons15)        "\taddi x%c,x%0,%1\n"  1
 reg: ADDU4(reg,CVIU4(cons15)) "\taddi x%c,x%0,%1\n"  1
 
 reg: BANDI4(reg,reg)  "\tand x%c,x%0,x%1\n"   1
@@ -332,11 +333,11 @@ reg: BORU4(reg,CVIU4(cons15))   "\tori x%c,x%0,%1\n"    1
 reg: BXORU4(reg,reg)  "\txor x%c,x%0,x%1\n"   1
 reg: BXORU4(reg,CVIU4(cons15))  "\txori x%c,x%0,%1\n"   1
 reg: SUBI4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBI4(reg,cons15)   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBI4(reg,cons15)   "\subi x%c,x%0,%1\n"  1
 reg: SUBP4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBP4(reg,cons15)   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBP4(reg,cons15)   "\subi x%c,x%0,%1\n"  1
 reg: SUBU4(reg,reg)   "\tsub x%c,x%0,x%1\n"  1
-reg: SUBU4(reg,CVIU4(cons15))   "\taddi x%c,x%0,-%1\n"  1
+reg: SUBU4(reg,CVIU4(cons15))   "\subi x%c,x%0,%1\n"  1
 reg: NEGI4(reg)   "\tsub x%c,x0,x%0\n" 1
 reg: BCOMI4(reg)   "\tnot x%c,x%0\n" 1
 reg: BCOMU4(reg)   "\tnot x%c,x%0\n" 1
@@ -368,20 +369,6 @@ stmt: LABELV  "%a:\n"
 stmt: JUMPV(lab)  "\tj %0\n"   1
 stmt: JUMPV(reg)   "\tjalr x0,0(x%0)\n"  1
 
-stmt: EQI4(reg,reg)  "\tbeq x%0,x%1,%a\n"   1
-stmt: EQU4(reg,reg)  "\tbeq x%0,x%1,%a\n"   1
-stmt: GEI4(reg,reg)  "\tbge x%0,x%1,%a\n"   1
-stmt: GEU4(reg,reg)  "\tbgeu x%0,x%1,%a\n"  1
-stmt: GTI4(reg,reg)  "\tbgt x%0,x%1,%a\n"   1
-stmt: GTU4(reg,reg)  "\tbgtu x%0,x%1,%a\n"  1
-stmt: LEI4(reg,reg)  "\tble x%0,x%1,%a\n"   1
-stmt: LEU4(reg,reg)  "\tbleu x%0,x%1,%a\n"  1
-stmt: LTI4(reg,reg)  "\tblt x%0,x%1,%a\n"   1
-stmt: LTU4(reg,reg)  "\tbltu x%0,x%1,%a\n"  1
-stmt: NEI4(reg,reg)  "\tbne x%0,x%1,%a\n"   1
-stmt: NEU4(reg,reg)  "\tbne x%0,x%1,%a\n"   1
-
-
 reg: EQI4(reg,reg)  "\txor x%c,x%0,x%1\n\tsltiu x%c,x%c,1\n"   2
 reg: EQU4(reg,reg)  "\txor x%c,x%0,x%1\n\tsltiu x%c,x%c,1\n"   2
 
@@ -399,6 +386,7 @@ reg: GTU4(reg,reg)  "\tsltu x%c,x%1,x%0\n"   1
 
 reg: LEI4(reg,reg)  "\tslt x%c,x%1,x%0\n\txori x%c,x%c,1\n"   2
 reg: LEU4(reg,reg)  "\tsltu x%c,x%1,x%0\n\txori x%c,x%c,1\n"  2
+
 
 reg:  CALLF4(lab)  "\tcall %0\n"  1
 
@@ -430,12 +418,11 @@ stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
 reg:	INDIRF4(VREGP)		"# read register\n"
 stmt:	ASGNF4(VREGP,reg)	"# write register\n"
 
-
 reg:	ADDF4(reg,reg)		"\tcall float32_add\n"	1
 reg:	SUBF4(reg,reg)		"\tcall float32_sub\n"	1
 reg:	MULF4(reg,reg)		"\tcall float32_mul\n"	1
 reg:	DIVF4(reg,reg)		"\tcall float32_div\n"	1 
-reg:	LOADF4(reg)		"\taddi x%c,x%0,0\n"	1
+reg:	LOADF4(reg)		"\taddi x%c,x%0,0\n"	move100(a)
 reg:	NEGF4(reg)		"\tcall float32_neg\n"	1
 reg:	CVFF4(reg)		"\t"	1
 reg:	CVIF4(reg)		"\tcall int32_to_float32\n"	1
@@ -551,7 +538,7 @@ static Symbol argreg(int argno, int offset, int ty, int sz, int ty0) {
   if (offset > 20) {
     return NULL;
   }
-  return ireg[(offset / 4) + 12];
+   return ireg[(offset / 4) + 12];
 }
 
 
@@ -560,7 +547,6 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
   Symbol p, q;
   Symbol r;
   int sizeisave;
-  int sizefsave;
   int saved;
   int framesizeabs;
   Symbol argregs[6];
@@ -615,13 +601,11 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
     usedmask[IREG] |= ((unsigned) 1) << 1;
   }
   usedmask[IREG] &= 0x0FFC0002;
- 
   maxargoffset = roundup(maxargoffset, 4);
   if (ncalls != 0 && maxargoffset < 24) {
     maxargoffset = 24;
   }
   sizeisave = 4 * bitcount(usedmask[IREG]);
-
   framesize = roundup(maxoffset, 16);
   framesizeabs = roundup(maxargoffset + sizeisave + 4, 16) + framesize;
   segment(CODE);
@@ -653,7 +637,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
       if (out->sclass == REGISTER &&
           (isint(out->type) || out->type == in->type)) {
         int outn = out->x.regnode->number;
-          print("\tmv x%d,x%d\n", outn, rn);        
+        print("\tmv x%d,x%d\n", outn, rn);        
       } else {
         int off = in->x.offset;
         int n = (in->type->size + 3) / 4;
@@ -726,7 +710,7 @@ static void progbeg(int argc, char *argv[]) {
   segment(CODE);
   parseflags(argc, argv);
   for (i = 0; i < argc; i++)
-    if (strcmp(argv[i], "-d") == 0)
+		if (strcmp(argv[i], "-d") == 0)
 			dflag = 1;		
   for (i = 0; i < 32; i++) {
     ireg[i] = mkreg("%d", i, 1, IREG);
@@ -735,7 +719,6 @@ static void progbeg(int argc, char *argv[]) {
   ireg[2]->x.name = "x2";
   tmask[IREG] = INTTMP;
   vmask[IREG] = INTVAR;
-  blkreg = mkreg("5", 5, 7, IREG);
 }
 
 
@@ -801,9 +784,8 @@ static Symbol rmap(int opk) {
     case U:
     case P:
     case B: 
-     return iregw;
     case F:
-      return iregw;      
+     return iregw;
     default:
       return 0;
   }
@@ -874,16 +856,9 @@ static void emit2(Node p) {
       q = argreg(p->x.argno, p->syms[2]->u.c.v.i, ty, sz, ty0);
       src = getregnum(p->x.kids[0]);
       if (q == NULL) {
-         print("\tsw x%d,%d(x2)\n", src, p->syms[2]->u.c.v.i);
+            print("\tsw x%d,%d(x2)\n", src, p->syms[2]->u.c.v.i);
       }
       break;
-    case ASGN+B:
-      dalign = p->syms[1]->u.c.v.i;
-      salign = p->syms[1]->u.c.v.i;
-      blkcopy(getregnum(p->x.kids[0]), 0,
-              getregnum(p->x.kids[1]), 0,
-              p->syms[0]->u.c.v.i, tmpregs);
-      break;    
   }
 }
 
@@ -926,15 +901,19 @@ static void target(Node p) {
     case LT + F:
     case GT + F:
     case GE + F:
+      
       setreg (p, ireg[10]);
       rtarget (p, 0, ireg[12]);
       rtarget (p, 1, ireg[13]);
+
       break;
     case NEG + F:
     case CVI + F:
     case CVF + I:
+      
       setreg (p, ireg[10]);
       rtarget (p, 0, ireg[12]);
+
       break;
     case CNST+I:
     case CNST+P:
@@ -942,6 +921,9 @@ static void target(Node p) {
       if (range(p, 0, 0) == 0) {
         setreg(p, ireg[0]);
         p->x.registered = 1;
+      } else {
+        /* Force constants that don't match immed rules into a register */
+        rtarget(p, 0, iregw); 
       }
       break;
     case CALL+I:
@@ -979,10 +961,10 @@ static void target(Node p) {
       }
       break;
     case ASGN+B:
-      rtarget(p->kids[1], 0, blkreg);
+      rtarget(p->kids[1], 0, iregw);
       break;
     case ARG+B:
-      rtarget(p->kids[0], 0, blkreg);
+      rtarget(p->kids[0], 0, iregw);
       break;
   }
 }
