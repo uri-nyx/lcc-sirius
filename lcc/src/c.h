@@ -34,8 +34,8 @@
 #define roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
 #define mkop(op,ty) (specific((op) + ttob(ty)))
 
-#define extend(x,ty) ((x)&(1<<(8*(ty)->size-1)) ? (x)|((~0UL)<<(8*(ty)->size-1)) : (x)&ones(8*(ty)->size))
-#define ones(n) ((n)>=8*sizeof (unsigned long) ? ~0UL : ~((~0UL)<<(n)))
+#define extend(x,ty) ((x)&(1ULL<<(8*(ty)->size-1)) ? (x)|((~0ULL)<<(8*(ty)->size-1)) : (x)&ones(8*(ty)->size))
+#define ones(n) ((n)>=8*sizeof (unsigned long long) ? ~0ULL : ~((~0ULL)<<(n)))
 
 #define isqual(t)     ((t)->op >= CONST)
 #define unqual(t)     (isqual(t) ? (t)->type : (t))
@@ -81,8 +81,8 @@ typedef struct coord {
 typedef struct table *Table;
 
 typedef union value {
-	long i;
-	unsigned long u;
+	long long i;
+	unsigned long long u;
 	long double d;
 	void *p;
 	void (*g)(void);
@@ -189,6 +189,7 @@ enum {
 	V=VOID,
 	B=STRUCT
 };
+
 #define gop(name,value) name=value<<4,
 #define op(name,type,sizes)
 
@@ -598,4 +599,3 @@ extern Type qual(int, Type);
 extern void rmtypes(int);
 extern int ttob(Type);
 extern int variadic(Type);
-

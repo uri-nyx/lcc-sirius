@@ -99,18 +99,19 @@ static int tmpregs[] = { 28, 6, 7 };
 %term ARGB=41
 %term ARGF4=4129
 %term ARGI4=4133
+%term ARGI8=8229
 %term ARGP4=4135
 %term ARGU4=4134
 
 %term ASGNB=57
 %term ASGNF4=4145
-%term ASGNI1=1077 ASGNI2=2101 ASGNI4=4149
+%term ASGNI1=1077 ASGNI2=2101 ASGNI4=4149 ASGNI8=8245
 %term ASGNP4=4151
 %term ASGNU1=1078 ASGNU2=2102 ASGNU4=4150
 
 %term INDIRB=73
 %term INDIRF4=4161
-%term INDIRI1=1093 INDIRI2=2117 INDIRI4=4165
+%term INDIRI1=1093 INDIRI2=2117 INDIRI4=4165 INDIRI8=8261
 %term INDIRP4=4167
 %term INDIRU1=1094 INDIRU2=2118 INDIRU4=4166
 
@@ -231,6 +232,7 @@ static int tmpregs[] = { 28, 6, 7 };
 reg:	INDIRI1(VREGP)		"# read register\n"
 reg:	INDIRI2(VREGP)		"# read register\n"
 reg:	INDIRI4(VREGP)		"# read register\n"
+reg:  INDIRI8(VREGP)    "# read register\n"
 reg:	INDIRP4(VREGP)		"# read register\n"
 reg:	INDIRU1(VREGP)		"# read register\n"
 reg:	INDIRU2(VREGP)		"# read register\n"
@@ -239,6 +241,7 @@ reg:	INDIRU4(VREGP)		"# read register\n"
 stmt:	ASGNI1(VREGP,reg)	"# write register\n"
 stmt:	ASGNI2(VREGP,reg)	"# write register\n"
 stmt:	ASGNI4(VREGP,reg)	"# write register\n"
+stmt:	ASGNI8(VREGP,reg)	"# write register\n"
 stmt:	ASGNP4(VREGP,reg)	"# write register\n"
 stmt:	ASGNU1(VREGP,reg)	"# write register\n"
 stmt:	ASGNU2(VREGP,reg)	"# write register\n"
@@ -279,6 +282,7 @@ reg:    ADDRLP4			"\taddi x%c,x8,%a+%F\n" 1
 stmt:	ASGNI1(addr,reg)	"\tsb x%1,%0\n"	1
 stmt:	ASGNI2(addr,reg)	"\tsh x%1,%0\n"	1
 stmt:	ASGNI4(addr,reg)	"\tsw x%1,%0\n"	1
+stmt:	ASGNI8(addr,reg)	"\tsq x%1,%0 ; ASGNI8\n"	1
 stmt:	ASGNP4(addr,reg)	"\tsw x%1,%0\n"	1
 stmt:	ASGNU1(addr,reg)	"\tsb x%1,%0\n"	1
 stmt:	ASGNU2(addr,reg)	"\tsh x%1,%0\n"	1
@@ -288,6 +292,7 @@ stmt:	ASGNF4(addr,reg)	"\tsw x%1,%0\n"	1
 reg:	INDIRI1(addr)		"\tlb x%c,%0\n"	1
 reg:	INDIRI2(addr)		"\tlh x%c,%0\n"	1
 reg:	INDIRI4(addr)		"\tlw x%c,%0\n"	1
+reg:	INDIRI8(addr)		"\tlq x%c,%0\n ; INDIRi8"	1
 reg:	INDIRP4(addr)		"\tlw x%c,%0\n"	1
 reg:	INDIRU1(addr)		"\tlbu x%c,%0\n"	1
 reg:	INDIRU2(addr)		"\tlhu x%c,%0\n"	1
@@ -359,6 +364,8 @@ reg: LOADU2(reg)  "\tmv x%c,x%0 ; LOADU2\n"  move(a)
 reg: LOADI4(reg)  "\tmv x%c,x%0 ; LOADI4\n"  move(a)
 reg: LOADP4(reg)  "\tmv x%c,x%0 ; LOADP4\n"  move(a)
 reg: LOADU4(reg)  "\tmv x%c,x%0 ; LOADU4\n"  move(a)
+reg: LOADI8(reg)  "\tmv x%c,x%0 ; LOADI8\n"  move(a)
+
 
 reg:	CVII4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrai x%c,x%c,8*(4-%a)\n"  2
 reg:	CVUI4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrli x%c,x%c,8*(4-%a)\n"  2
@@ -417,13 +424,16 @@ stmt: CALLV(reg)  "\tjalr x1, 0(x%0)\n"  1
 stmt:	RETI4(reg)		"# ret\n"		1
 stmt:	RETP4(reg)		"# ret\n"		1
 stmt:	RETU4(reg)		"# ret\n"		1
-stmt:	RETV(reg)		"# ret\n"		1
+stmt:	RETV(reg)		  "# ret\n"		1
 stmt:	RETF4(reg)		"# ret\n"		1
 
 stmt:	ARGI4(reg)		"# arg\n"		1
 stmt:	ARGP4(reg)		"# arg\n"		1
 stmt:	ARGU4(reg)		"# arg\n"		1
 stmt:	ARGF4(reg)		"# arg\n"		1
+
+stmt: ARGI8(reg) "# arg\n" 1
+
 stmt:	ARGB(INDIRB(reg))	"# argb %0\n"		1
 stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
 
@@ -502,6 +512,10 @@ static void defconst(int suffix, int size, Value v) {
   } else
   if (size == 4) {
     print("\t.word\t0x%x\n", (unsigned) (suffix == I ? v.i : v.u));
+  } else if (size == 8) {
+    unsigned long long ull = (suffix == I ? (unsigned long long)v.i : v.u);
+    print("\t.word\t0x%x\n", (unsigned long)(ull >> 32));
+    print("\t.word\t0x%x\n", (unsigned long)(ull & 0xFFFFFFFF));
   }
 }
 
@@ -1081,10 +1095,10 @@ Interface siriusIR = {
   2, 2, 0,      /* short */
   4, 4, 0,      /* int */
   4, 4, 0,      /* long */
-  4, 4, 0,      /* long long */
+  8, 4, 0,      /* long long */
   4, 4, 1,      /* float */
-  4, 4, 1,      /* double */
-  4, 4, 1,      /* long double */
+  8, 4, 1,      /* double */
+  8, 4, 1,      /* long double */
   4, 4, 0,      /* T * */
   0, 1, 0,      /* struct */
   0,            /* little_endian */

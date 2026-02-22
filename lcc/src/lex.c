@@ -150,7 +150,7 @@ static void *wcput(int c, void *cl);
 static void *scon(int q, void *put(int c, void *cl), void *cl);
 static int backslash(int q);
 static Symbol fcon(void);
-static Symbol icon(unsigned long, int, int);
+static Symbol icon(unsigned long long, int, int);
 static void ppnumber(char *);
 
 int gettok(void) {
@@ -255,7 +255,7 @@ int gettok(void) {
 			return ID;
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9': {
-			unsigned long n = 0;
+			unsigned long long n = 0;
 			if (limit - rcp < MAXLINE) {
 				cp = rcp - 1;
 				fillbuf();
@@ -274,7 +274,7 @@ int gettok(void) {
 						d = *rcp - 'A' + 10;
 					else
 						break;
-					if (n&~(~0UL >> 4))
+					if (n&~((unsigned long long)~0ULL >> 4))
 						overflow = 1;
 					else
 						n = (n<<4) + d;
@@ -288,7 +288,7 @@ int gettok(void) {
 				for ( ; map[*rcp]&DIGIT; rcp++) {
 					if (*rcp == '8' || *rcp == '9')
 						err = 1;
-					if (n&~(~0UL >> 3))
+					if (n&~((unsigned long long)~0ULL >> 3))
 						overflow = 1;
 					else
 						n = (n<<3) + (*rcp - '0');
@@ -306,7 +306,7 @@ int gettok(void) {
 				int overflow = 0;
 				for (n = *token - '0'; map[*rcp]&DIGIT; ) {
 					int d = *rcp++ - '0';
-					if (n > (ULONG_MAX - d)/10)
+					if (n > (ULLONG_MAX - d)/10)
 						overflow = 1;
 					else
 						n = 10*n + d;
@@ -694,10 +694,25 @@ int gettok(void) {
 		}
 	}
 }
-static Symbol icon(unsigned long n, int overflow, int base) {
-	if ((*cp=='u'||*cp=='U') && (cp[1]=='l'||cp[1]=='L')
+static Symbol icon(unsigned long long n, int overflow, int base) {
+	if ((*cp=='l'||*cp=='L') && (cp[1]=='l'||cp[1]=='L')) {
+        cp += 2;
+        if (*cp=='u'||*cp=='U') {
+            tval.type = unsignedlonglong; /* if you defined it, else unsignedlong */
+            cp += 1;
+        } else {
+			tval.type = unsignedlonglong;
+        }
+    } else if ((*cp=='u'||*cp=='U') && (cp[1]=='l'||cp[1]=='L') && (cp[2]=='l'||cp[2]=='L')) {
+        tval.type = unsignedlonglong;
+        cp += 3;
+    } 
+	else if ((*cp=='u'||*cp=='U') && (cp[1]=='l'||cp[1]=='L')
 	||  (*cp=='l'||*cp=='L') && (cp[1]=='u'||cp[1]=='U')) {
-		tval.type = unsignedlong;
+		if (overflow || n > unsignedlong->u.sym->u.limits.max.u) 
+			tval.type = unsignedlonglong;
+		else 
+			tval.type = unsignedlong;
 		cp += 2;
 	} else if (*cp == 'u' || *cp == 'U') {
 		if (overflow || n > unsignedtype->u.sym->u.limits.max.i)
