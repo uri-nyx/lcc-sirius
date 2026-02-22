@@ -1935,7 +1935,7 @@ void format4(unsigned int code)
 void format3CSF(unsigned int code)
 {
         int dst, src1, src2;
-        int direction;
+        unsigned int direction;
 
         /* opcode with three register operands */
         expect(TOK_IREGISTER);
