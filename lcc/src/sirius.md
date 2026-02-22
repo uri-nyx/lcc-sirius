@@ -98,8 +98,7 @@ static int tmpregs[] = { 28, 6, 7 };
 
 %term ARGB=41
 %term ARGF4=4129
-%term ARGI4=4133
-%term ARGI8=8229
+%term ARGI4=4133 ARGI8=8229
 %term ARGP4=4135
 %term ARGU4=4134
 
@@ -292,7 +291,7 @@ stmt:	ASGNF4(addr,reg)	"\tsw x%1,%0\n"	1
 reg:	INDIRI1(addr)		"\tlb x%c,%0\n"	1
 reg:	INDIRI2(addr)		"\tlh x%c,%0\n"	1
 reg:	INDIRI4(addr)		"\tlw x%c,%0\n"	1
-reg:	INDIRI8(addr)		"\tlq x%c,%0\n ; INDIRi8"	1
+reg:	INDIRI8(addr)		"\tlq x%c,%0 ; INDIR8\n"	1
 reg:	INDIRP4(addr)		"\tlw x%c,%0\n"	1
 reg:	INDIRU1(addr)		"\tlbu x%c,%0\n"	1
 reg:	INDIRU2(addr)		"\tlhu x%c,%0\n"	1
@@ -428,11 +427,11 @@ stmt:	RETV(reg)		  "# ret\n"		1
 stmt:	RETF4(reg)		"# ret\n"		1
 
 stmt:	ARGI4(reg)		"# arg\n"		1
+stmt: ARGI8(reg)    "# arg\n"   1
 stmt:	ARGP4(reg)		"# arg\n"		1
 stmt:	ARGU4(reg)		"# arg\n"		1
 stmt:	ARGF4(reg)		"# arg\n"		1
 
-stmt: ARGI8(reg) "# arg\n" 1
 
 stmt:	ARGB(INDIRB(reg))	"# argb %0\n"		1
 stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
