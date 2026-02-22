@@ -217,10 +217,10 @@ static int tmpregs[] = { 28, 6, 7 };
 %term LABELV=600
 
 %term LOADB=233
-%term LOADF4=4321 LOADF8=8417 LOADF16=16609
-%term LOADI1=1253 LOADI2=2277 LOADI4=4325 LOADI8=8421
-%term LOADP4=4327 LOADP8=8423
-%term LOADU1=1254 LOADU2=2278 LOADU4=4326 LOADU8=8422
+%term LOADF4=4321 
+%term LOADI1=1253 LOADI2=2277 LOADI4=4325 
+%term LOADP4=4327 
+%term LOADU1=1254 LOADU2=2278 LOADU4=4326 
 
 %term VREGP=711
 
@@ -231,7 +231,7 @@ static int tmpregs[] = { 28, 6, 7 };
 reg:	INDIRI1(VREGP)		"# read register\n"
 reg:	INDIRI2(VREGP)		"# read register\n"
 reg:	INDIRI4(VREGP)		"# read register\n"
-reg:  INDIRI8(VREGP)    "# read register\n"
+reg:	INDIRI8(VREGP)		"# read register\n"
 reg:	INDIRP4(VREGP)		"# read register\n"
 reg:	INDIRU1(VREGP)		"# read register\n"
 reg:	INDIRU2(VREGP)		"# read register\n"
@@ -281,7 +281,8 @@ reg:    ADDRLP4			"\taddi x%c,x8,%a+%F\n" 1
 stmt:	ASGNI1(addr,reg)	"\tsb x%1,%0\n"	1
 stmt:	ASGNI2(addr,reg)	"\tsh x%1,%0\n"	1
 stmt:	ASGNI4(addr,reg)	"\tsw x%1,%0\n"	1
-stmt:	ASGNI8(addr,reg)	"\tsq x%1,%0 ; ASGNI8\n"	1
+stmt:	ASGNI4(addr,reg)	"\tsw x%1,%0\n"	1
+stmt:	ASGNI8(addr,reg)	"\t; ASGNI8 asgnb %0 x%1\n"	1
 stmt:	ASGNP4(addr,reg)	"\tsw x%1,%0\n"	1
 stmt:	ASGNU1(addr,reg)	"\tsb x%1,%0\n"	1
 stmt:	ASGNU2(addr,reg)	"\tsh x%1,%0\n"	1
@@ -291,7 +292,6 @@ stmt:	ASGNF4(addr,reg)	"\tsw x%1,%0\n"	1
 reg:	INDIRI1(addr)		"\tlb x%c,%0\n"	1
 reg:	INDIRI2(addr)		"\tlh x%c,%0\n"	1
 reg:	INDIRI4(addr)		"\tlw x%c,%0\n"	1
-reg:	INDIRI8(addr)		"\tlq x%c,%0 ; INDIR8\n"	1
 reg:	INDIRP4(addr)		"\tlw x%c,%0\n"	1
 reg:	INDIRU1(addr)		"\tlbu x%c,%0\n"	1
 reg:	INDIRU2(addr)		"\tlhu x%c,%0\n"	1
@@ -363,7 +363,6 @@ reg: LOADU2(reg)  "\tmv x%c,x%0 ; LOADU2\n"  move(a)
 reg: LOADI4(reg)  "\tmv x%c,x%0 ; LOADI4\n"  move(a)
 reg: LOADP4(reg)  "\tmv x%c,x%0 ; LOADP4\n"  move(a)
 reg: LOADU4(reg)  "\tmv x%c,x%0 ; LOADU4\n"  move(a)
-reg: LOADI8(reg)  "\tmv x%c,x%0 ; LOADI8\n"  move(a)
 
 
 reg:	CVII4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrai x%c,x%c,8*(4-%a)\n"  2
@@ -419,6 +418,9 @@ reg:  CALLP4(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLU4(reg)  "\tjalr x1, 0(x%0)\n"  1
 stmt: CALLV(reg)  "\tjalr x1, 0(x%0)\n"  1
 
+stmt: CALLB(lab)  "\tcall %0\n"  1
+stmt: CALLB(reg)  "\tjalr x1, 0(x%0)\n"  1
+
 
 stmt:	RETI4(reg)		"# ret\n"		1
 stmt:	RETP4(reg)		"# ret\n"		1
@@ -427,13 +429,14 @@ stmt:	RETV(reg)		  "# ret\n"		1
 stmt:	RETF4(reg)		"# ret\n"		1
 
 stmt:	ARGI4(reg)		"# arg\n"		1
-stmt: ARGI8(reg)    "# arg\n"   1
+stmt: ARGI8(reg)    "; ARGI8 x%0 \n" 1
 stmt:	ARGP4(reg)		"# arg\n"		1
 stmt:	ARGU4(reg)		"# arg\n"		1
 stmt:	ARGF4(reg)		"# arg\n"		1
 
 
 stmt:	ARGB(INDIRB(reg))	"# argb %0\n"		1
+stmt:	ARGI8(INDIRI8(reg))	";ARG8 INDIR x%0\n"		1
 stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
 
 reg:	INDIRF4(VREGP)		"# read register\n"
@@ -535,6 +538,7 @@ static void defsymbol(Symbol s) {
   if (s->generated) {
     s->x.name = stringf("L.%s", s->name);
   } else {
+    //fprintf(stderr, "Name: %s, scope: %d, type: %x\n", s->name, s->scope, s->type);
     assert(s->scope != CONSTANTS || isint(s->type) || isptr(s->type));
     s->x.name = s->name;
   }
@@ -561,7 +565,7 @@ static int bitcount(unsigned mask) {
 
 static Symbol argreg(int argno, int offset, int ty, int sz, int ty0) {
   assert((offset & 3) == 0);
-  if (offset > 20) {
+  if (offset > 20 || sz > 8) {
     return NULL;
   }
   return ireg[(offset / 4) + 12];
@@ -612,8 +616,10 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
       assert(p->x.regnode && p->x.regnode->vbl == p);
       q->x = p->x;
       q->type = p->type;       
-    } else {    
-    if (askregvar(p, rmap(ttob(p->type))) &&
+    } else {
+      if (isstruct(p->type)) {
+        p->sclass = q->sclass = AUTO; 
+    } else  if (askregvar(p, rmap(ttob(p->type))) &&
         r != NULL && (isint(p->type) || p->type == q->type)) {
       assert(q->sclass != REGISTER);
       p->sclass = q->sclass = REGISTER;
@@ -669,7 +675,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
           print("\tmv x%d,x%d\n", outn, rn);        
       } else {
         int off = in->x.offset;
-        int n = (in->type->size + 3) / 4;
+        int n = isstruct(in->type) ? 1 : (in->type->size + 3) / 4;
         int i;
         for (i = rn; i < rn + n; i++) {
                 print("\tsw x%d,%d(x8)\n", i, framesize + off + (i - rn) * 4);
@@ -738,6 +744,11 @@ static void progbeg(int argc, char *argv[]) {
   setSwap();
   segment(CODE);
   parseflags(argc, argv);
+
+  printf("# Compiled with lcc-sirius 4.2\n");
+  printf("# assemble with supplied as assembler\n");
+  printf("# link with supplied ld linker\n");
+
   for (i = 0; i < argc; i++)
     if (strcmp(argv[i], "-d") == 0)
 			dflag = 1;		
@@ -881,6 +892,10 @@ static void emit2(Node p) {
     case ARG+U:
       ty = optype(p->op);
       sz = opsize(p->op);
+      if (sz == 8) {
+        printf("\t; ARG 8\n");
+        break;
+      }
       if (p->x.argno == 0) {
         ty0 = ty;
       }
@@ -888,6 +903,30 @@ static void emit2(Node p) {
       src = getregnum(p->x.kids[0]);
       if (q == NULL) {
          print("\tsw x%d,%d(x2)\n", src, p->syms[2]->u.c.v.i);
+      }
+      break;
+    case ASGN+I:
+    case ASGN+U:
+        sz = opsize(p->op);
+        if (sz == 8) {
+            /* Treat ASGNI8 like ASGNB */
+            /* kids[0] is destination address, kids[1] is source address */
+            printf("; ASGN 8\n");
+        }
+        break;
+    case ARG+B:
+        sz = p->syms[0]->u.c.v.i;
+        q = argreg(p->x.argno, p->syms[2]->u.c.v.i, ty, sz, ty0);
+        src = getregnum(p->x.kids[0]); 
+
+        if (q && sz <= 4) { // Only load into register if it actually fits
+          print("\tlw x%d,0(x%d)\n", q->x.regnode->number, src);
+        } else if (q) {
+            /* Pass pointer in register */
+            print("\tmv x%d,x%d\n", q->x.regnode->number, src);
+        } else {
+          // Only if we run out of registers do we put the pointer on the stack
+          print("\tsw x%d,%d(x2)\n", src, p->syms[2]->u.c.v.i);
       }
       break;
     case ASGN+B:
@@ -915,7 +954,11 @@ static void doarg(Node p) {
   if (align < 4) {
     align = 4;
   }
-  size = p->syms[0]->u.c.v.i;
+
+
+    size = p->syms[0]->u.c.v.i;
+
+
   offset = mkactual(align, size);
   p->syms[2] = intconst(offset);
 }
@@ -959,7 +1002,8 @@ static void target(Node p) {
       break;
     case CALL+I:
     case CALL+P:
-    case CALL+U:    
+    case CALL+U:
+    case CALL+B:
       /*rtarget(p, 0, ireg[31]);*/
       setreg(p, ireg[10]);
       break;
@@ -972,7 +1016,7 @@ static void target(Node p) {
       break;
     case RET+I:
     case RET+P:
-    case RET+U:    
+    case RET+U:
       rtarget(p, 0, ireg[10]);
       break;
     case RET+F:
@@ -1010,6 +1054,7 @@ static void clobber(Node p) {
     case CALL+I:
     case CALL+P:
     case CALL+U:
+    case CALL+B:
       spill(INTTMP, IREG, p);
       break;         
     case ADD+F:
@@ -1094,7 +1139,7 @@ Interface siriusIR = {
   2, 2, 0,      /* short */
   4, 4, 0,      /* int */
   4, 4, 0,      /* long */
-  8, 4, 0,      /* long long */
+  8, 4, 1,      /* long long */
   4, 4, 1,      /* float */
   8, 4, 1,      /* double */
   8, 4, 1,      /* long double */
@@ -1102,7 +1147,7 @@ Interface siriusIR = {
   0, 1, 0,      /* struct */
   0,            /* little_endian */
   mulops_calls, /* mulops_calls */
-  0,            /* wants_callb */
+  1,            /* wants_callb */
   0,            /* wants_argb */
   1,            /* left_to_right */
   0,            /* wants_dag */

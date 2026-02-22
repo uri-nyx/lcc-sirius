@@ -25,10 +25,10 @@
 #define opsize(op)  ((op)>>10)
 #define optype(op)  ((op)&0xF)
 #ifdef __LCC__
-#ifndef __STDC__
-#define __STDC__
+#ifndef C_H
+#define C_H
 #endif
-#endif
+#endif /* C_H */
 #define NELEMS(a) ((int)(sizeof (a)/sizeof ((a)[0])))
 #undef roundup
 #define roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
