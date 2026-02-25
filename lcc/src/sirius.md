@@ -81,7 +81,7 @@ static int movehard(Node p);
 extern void stabend(Coordinate *, Symbol, Coordinate **, Symbol *, Symbol *); 
 
 #define INTTMP	0x700000E0
-#define INTTMP64 ( (1<<6) | (1<<28) )  /* x6 (even) and x28 (even) only */
+#define INTTMP64 ( (1<<22) | (1<<24) | (1<<26) | (1<<28)  )  
 #define INTVAR	0x0FFC0000
 #define INTRET	0x00000400
 
@@ -89,7 +89,7 @@ static Symbol ireg[32];
 static Symbol ireg2[32];
 static Symbol iregw, ireg2w;
 static Symbol blkreg;
-static int tmpregs[] = { 28, 6, 7 };
+static int tmpregs[] = { 28, 6};
 
 static int retstruct = 0;
 
@@ -145,7 +145,7 @@ static int retstruct = 0;
 %term CALLU8=8406
 %term CALLV=216
 
-%term RETF4=4337
+%term RETF4=4337 RETF8=8433
 %term RETI4=4341 RETI8=8437
 %term RETP4=4343
 %term RETU4=4342 RETU8=8438
@@ -225,6 +225,7 @@ static int retstruct = 0;
 %term LABELV=600
 
 %term LOADB=233
+%term LOADF8=8417
 %term LOADF4=4321 
 %term LOADI1=1253 LOADI2=2277 LOADI4=4325 LOADI8=8421
 %term LOADP4=4327 
@@ -232,19 +233,40 @@ static int retstruct = 0;
 
 %term VREGP=711
 
+%term ASGNF8=8241
+%term ADDF8=8497
+%term ARGF8=8225
+%term CALLF8=8401
+%term CNSTF8=8209
+%term DIVF8=8641
+%term EQF8=8673
+%term GEF8=8689
+%term GTF8=8705
+%term INDIRF8=8257
+%term LEF8=8721
+%term LTF8=8737
+%term MULF8=8657
+%term NEF8=8753
+%term NEGF8=8385
+%term SUBF8=8513
+
+
 
 %%
 
 
+stmt:	reg			""
+stmt: pair    ""
+
 reg:	INDIRI1(VREGP)		"# read register\n"
 reg:	INDIRI2(VREGP)		"# read register\n"
 reg:	INDIRI4(VREGP)		"# read register\n"
-pair:	INDIRI8(VREGP)		"# read register pair\n" 0
+pair:	INDIRI8(VREGP)		"# read register pair\n" 
 reg:	INDIRP4(VREGP)		"# read register\n"
 reg:	INDIRU1(VREGP)		"# read register\n"
 reg:	INDIRU2(VREGP)		"# read register\n"
 reg:	INDIRU4(VREGP)		"# read register\n"
-pair:	INDIRU8(VREGP)		"# read register pair\n" 0
+pair:	INDIRU8(VREGP)		"# read register pair\n" 
 
 
 stmt:	ASGNI1(VREGP,reg)	 "# write register\n"
@@ -267,17 +289,15 @@ con:	CNSTU4			"%a"
 con8:	CNSTI8			"#%a"
 con8:	CNSTU8			"#%a"
 
-stmt:	reg			""
-stmt: pair    ""
+lab:  ADDRGP4     "%a"
+reg:	lab			    "\tla x%c,%0\n"	1
+reg:  con         "\tli x%c,%0\n" 1
 
 
 
-lab:   ADDRGP4     "%a"
-reg:	lab			"\tla x%c,%0\n"	1
-reg:    con         "\tli x%c,%0\n" 1
 
-pair: con8 "%0\n" 1
-pair: lab "\tla x%c,%0\n" 1
+pair: con8        "%0\n" 1
+pair: lab         "\tla x%c,%0\n" 1
 
 
 reg: CNSTI1  "# reg\n"  range(a, 0, 0)
@@ -288,16 +308,15 @@ reg: CNSTU2  "# reg\n"  range(a, 0, 0)
 reg: CNSTU4  "# reg\n"  range(a, 0, 0)
 reg: CNSTP4  "# reg\n"  range(a, 0, 0) 
 
-pair: CNSTI8  "# reg:hi reg:lo\n"  range(a, 0, 0)
+pair: CNSTI8  "# pair\n"  range(a, 0, 0)
 
 addr:	reg			    "+0(x%0)"
 addr: pair        "+0(x%0)"
-addr:	ADDRFP4			"%a+%F(x8)"
-addr:	ADDRLP4			"%a+%F(x8)"
+addr:	ADDRFP4			"+(%a)+%F(x8)"
+addr:	ADDRLP4			"+(%a)+%F(x8)"
 
 reg:    ADDRFP4			"\taddi x%c,x8,%a+%F\n" 1
 reg:    ADDRLP4			"\taddi x%c,x8,%a+%F\n" 1
-
 
 
 stmt:	ASGNI1(addr,reg)	"\tsb x%1,%0\n"	1
@@ -315,8 +334,8 @@ stmt: ASGNI4(addr, CVII4(INDIRI8(VREGP)))  "\tsw x%1, %0\n" 0
 stmt: ASGNI4(addr, CVUI4(INDIRI8(VREGP)))  "\tsw x%1, %0\n" 0
 stmt: ASGNI4(addr, CVUU4(INDIRI8(VREGP)))  "\tsw x%1, %0\n" 0
 
-stmt: ASGNI4(VREGP, CVII4(LOADI8(INDIRI8(VREGP))))   "\t# write register\n"  0
-stmt: ASGNI4(VREGP, CVUI4(LOADU8(INDIRU8(VREGP))))   "\t# write register\n"  0
+stmt: ASGNI4(VREGP, CVII4(INDIRI8(VREGP)))   "\t# write register\n"  0
+stmt: ASGNI4(VREGP, CVUI4(INDIRU8(VREGP)))   "\t# write register\n"  0
 
 reg:	INDIRI1(addr)		"\tlb x%c,%0\n"	1
 reg:	INDIRI2(addr)		"\tlh x%c,%0\n"	1
@@ -392,43 +411,44 @@ reg: LOADU1(reg)  "\tmv x%c,x%0 ; LOADU1\n"  move(a)
 reg: LOADI2(reg)  "\tmv x%c,x%0 ; LOADI2\n"  move(a)
 reg: LOADU2(reg)  "\tmv x%c,x%0 ; LOADU2\n"  move(a)
 reg: LOADI4(reg)  "\tmv x%c,x%0 ; LOADI4\n"  move(a)
-reg: LOADI4(pair) "\tmv x%c,x%0 ; LOADI4 from pair (trunc 64->32)\n" 1
+reg: LOADI4(pair) "\tmv x%c,x%0^ ; LOADI4 from pair (trunc 64->32)\n" 2
 pair: LOADI8(pair)  "\tmv x%c,%x0\n\tmv x%c^,%x0^ ; LOADI8\n"  move(a)
 reg: LOADP4(reg)  "\tmv x%c,x%0 ; LOADP4\n"  move(a)
 reg: LOADU4(reg)  "\tmv x%c,x%0 ; LOADU4\n"  move(a)
-reg: LOADU4(pair) "\tmv x%c,x%0 ; LOADU4 from pair (trunc 64->32)\n" 1
+reg: LOADU4(pair) "\tmv x%c,x%0^ ; LOADU4 from pair (trunc 64->32)\n" 2
 pair: LOADU8(pair)  "\tmv x%c,%x0\n\tmv x%c^,%x0^ ; LOADU8\n"  move(a)
 
 
-pair: LOADI8(INDIRI8(addr))  "\tlw x%c,%0\n\tlw x%c^, 4%0\n" 1
-pair: LOADU8(INDIRU8(addr))  "\tlw x%c,%0\n\tlw x%c^, 4%0\n" 1
+
 
 reg:	CVII4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrai x%c,x%c,8*(4-%a)\n"  2
 reg:	CVUI4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrli x%c,x%c,8*(4-%a)\n"  2
 reg:	CVUU4(reg)  "\tshlli x%c,x%0,8*(4-%a)\n\tshrli x%c,x%c,8*(4-%a)\n"  2
 
-reg: CVII4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 0
-reg: CVUI4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVUU4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVII4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 0
-reg: CVUI4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVUU4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
+reg: CVII4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 1
+reg: CVUI4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVUU4(INDIRI8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVII4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 1
+reg: CVUI4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVUU4(INDIRU8(addr))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
 
-reg: CVII4(pair)  "\tmv x%c, x%0 ; truncate 64->32 from pair\n" 1
-reg: CVUI4(pair)  "\tmv x%c, x%0 ; truncate 64->32 unsigned from pair\n" 1
-reg: CVUU4(pair)  "\tmv x%c, x%0 ; truncate 64->32 unsigned from pair\n" 1
+reg: CVII4(pair)  "\tmv x%c, x%0^ ; truncate 64->32 from pair\n" 2
+reg: CVUI4(pair)  "\tmv x%c, x%0^ ; truncate 64->32 unsigned from pair\n" 2
+reg: CVUU4(pair)  "\tmv x%c, x%0^ ; truncate 64->32 unsigned from pair\n" 2
 
-reg: CVII4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 0
-reg: CVUI4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVUU4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVII4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 0
-reg: CVUI4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
-reg: CVUU4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 0
 
-reg: CVII4(LOADI8(INDIRI8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->i4\n"  0
-reg: CVUI4(LOADI8(INDIRI8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->u4\n"  0
-reg: CVUU4(LOADU8(INDIRU8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->u4\n"  0
-reg: CVII4(LOADU8(INDIRU8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->i4\n"  0
+
+reg: CVII4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 1
+reg: CVUI4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVUU4(INDIRI8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVII4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 from reg\n" 1
+reg: CVUI4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+reg: CVUU4(INDIRU8(VREGP))  "\tmv x%c, x%0 ; truncate 64->32 unsigned from reg\n" 1
+
+reg: CVII4(LOADI8(INDIRI8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->i4\n"  1
+reg: CVUI4(LOADI8(INDIRI8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->u4\n"  1
+reg: CVUU4(LOADU8(INDIRU8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->u4\n"  1
+reg: CVII4(LOADU8(INDIRU8(VREGP)))   "\tmv x%c, x%0 ; trunc pair-vreg->i4\n"  1
 
 stmt: LABELV  "%a:\n"
 stmt: JUMPV(lab)  "\tj %0\n"   1
@@ -488,7 +508,7 @@ stmt: CALLB(reg, reg)  "\tjalr x1, 0(x%0)\n"  1
 
 
 stmt:	RETI4(reg)		"# ret\n"		1
-stmt:	RETI8(pair)		";RETI8 # ret\n"		1
+stmt:	RETI8(pair)		"# ret\n"		1
 stmt:	RETP4(reg)		"# ret\n"		1
 stmt:	RETU4(reg)		"# ret\n"		1
 stmt:	RETU8(pair)		"# ret\n"		1
@@ -501,7 +521,7 @@ stmt:	ARGP4(reg)		"# arg\n"		1
 stmt:	ARGU4(reg)		"# arg\n"		1
 stmt: ARGU8(pair)    "# arg\n" 1
 stmt:	ARGF4(reg)		"# arg\n"		1
-
+stmt:	ARGF8(pair)		"# arg double\n"	1
 
 stmt:	ARGB(INDIRB(reg))	"# argb %0\n"		1
 stmt:	ARGI8(INDIRI8(pair))	"#;ARG8 INDIR x%0\n"		1
@@ -513,7 +533,6 @@ stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
 reg:	INDIRF4(VREGP)		"# read register\n"
 stmt:	ASGNF4(VREGP,reg)	"# write register\n"
 
-
 reg:	ADDF4(reg,reg)		"\tcall float32_add\n"	1
 reg:	SUBF4(reg,reg)		"\tcall float32_sub\n"	1
 reg:	MULF4(reg,reg)		"\tcall float32_mul\n"	1
@@ -523,6 +542,8 @@ reg:	NEGF4(reg)		"\tcall float32_neg\n"	1
 reg:	CVFF4(reg)		"\t"	1
 reg:	CVIF4(reg)		"\tcall int32_to_float32\n"	1
 reg:	CVFI4(reg)		"\tcall float32_to_int32\n" 	1
+reg:	CVIF4(pair)		"\tcall int64_to_float32\n"	1
+pair:	CVFI8(reg)		"\tcall float32_to_int64\n" 	1
 stmt:	EQF4(reg,reg)		"\tcall float32_eq\n\tbne x10,x0,%a\n"   1
 stmt:	LEF4(reg,reg)       "\tcall float32_le\n\tbne x10,x0,%a\n"   1
 stmt:	LTF4(reg,reg)       "\tcall float32_lt\n\tbne x10,x0,%a\n"   1
@@ -530,52 +551,81 @@ stmt:	GEF4(reg,reg)       "\tcall float32_ge\n\tbne x10,x0,%a\n"   1
 stmt:	GTF4(reg,reg)       "\tcall float32_gt\n\tbne x10,x0,%a\n"   1
 stmt:	NEF4(reg,reg)		"\tcall float32_ne\n\tbne x10,x0,%a\n"   1
 
-pair: ADDI8(pair,pair)   ";ADDI8\n\tadd x%c, x%0, x%1\n\tsltu x5, x%c, x%0\n\tadd x%c^, x%0^, x%1^\n\tadd x%c^, x%c^, x5\n" 1
-pair: ADDU8(pair,pair)   ";ADDU8\n\tadd x%c, x%0, x%1\n\tsltu x5, x%c, x%0\n\tadd x%c^, x%0^, x%1^\n\tadd x%c^, x%c^, x5\n" 1
-pair: SUBI8(pair,pair)   ";SUBI8\n\tsltu x5, x%0, x%1\n\tsub x%c, x%0, x%1\n\tsub x%c^, x%0^, x%1^\n\tsub x%c^, x%c^, x5\n" 1
-pair: SUBU8(pair,pair)   ";SUBI8\n\tsltu x5, x%0, x%1\n\tsub x%c, x%0, x%1\n\tsub x%c^, x%0^, x%1^\n\tsub x%c^, x%c^, x5\n" 1
-pair: BANDI8(pair,pair)  ";BANDI8\n\tand x%c, x%0, x%1\n\tand x%c^, x%0^, x%1^\n" 1
-pair: BANDU8(pair,pair)  ";BANDU8\n\tand x%c, x%0, x%1\n\tand x%c^, x%0^, x%1^\n" 1
-pair: BORI8(pair,pair)   ";BORI8\n\tor x%c, x%0, x%1\n\tor x%c^, x%0^, x%1^\n" 1
-pair: BORU8(pair,pair)   ";BORU8\n\tor x%c, x%0, x%1\n\tor x%c^, x%0^, x%1^\n" 1
-pair: BXORI8(pair,pair)  ";BXORI8\n\txor x%c, x%0, x%1\n\txor x%c^, x%0^, x%1^\n" 1
-pair: BXORU8(pair,pair)  ";BXORU8\n\txor x%c, x%0, x%1\n\txor x%c^, x%0^, x%1^\n" 1
-pair: BCOMI8(pair)      ";BCOMI8\n\tnot x%c, x%0\n\tnot x%c^, x%0^\n" 1
-pair: BCOMU8(pair)      ";BCOMU8\n\tnot x%c, x%0\n\tnot x%c^, x%0^\n" 1
-pair: NEGI8(pair)       ";NEGI8\n\tsltu x5, x0, x%0\n\tsub x%c, x0, x%0\n\tsub x%c^, x0, x%0^\n\tsub x%c^, x%c^, x5\n" 1
+
+pair:	INDIRF8(VREGP)		"# read double register pair\n" 0
+stmt:	ASGNF8(VREGP,pair)	"# write double register pair\n"
+
+stmt:	ASGNF8(addr,pair)	"\tsw x%1, %0\n\tsw x%1^, 4%0\n"	1
+pair:	INDIRF8(addr)		"\tlw x%c,%0\n\tlw x%c^, 4%0\n" 1
+
+pair:	ADDF8(pair,pair)	"\tcall double_add\n"	1
+pair:	SUBF8(pair,pair)	"\tcall double_sub\n"	1
+pair:	MULF8(pair,pair)	"\tcall double_mul\n"	1
+pair:	DIVF8(pair,pair)	"\tcall double_div\n"	1
+pair:	NEGF8(pair)		"\tcall double_neg\n"	1
+
+stmt:	EQF8(pair,pair)		"\tcall double_eq\n\tbne x10,x0,%a\n"	1
+stmt:	NEF8(pair,pair)		"\tcall double_ne\n\tbne x10,x0,%a\n"	1
+stmt:	LTF8(pair,pair)		"\tcall double_lt\n\tbne x10,x0,%a\n"	1
+stmt:	LEF8(pair,pair)		"\tcall double_le\n\tbne x10,x0,%a\n"	1
+stmt:	GTF8(pair,pair)		"\tcall double_gt\n\tbne x10,x0,%a\n"	1
+stmt:	GEF8(pair,pair)		"\tcall double_ge\n\tbne x10,x0,%a\n"	1
+
+pair:	CVIF8(reg)		"\tcall int32_to_double\n"	1
+reg:	CVFI4(pair)		"\tcall double_to_int32\n"	1
+
+pair:	CVIF8(pair)		"\tcall int64_to_double\n"	1
+pair:	CVFI8(pair)		"\tcall double_to_int64\n"	1
+reg:	CVFF4(pair)		"\tcall double_to_float\n"	1
+pair:	CVFF8(reg)		"\tcall float_to_double\n"	1
+
+pair:	LOADF8(pair)		"\tmv x%c,%x0\n\tmv x%c^,%x0^\n"	move(a)
+
+stmt:	RETF8(pair)		"# ret double\n"	1
+
+pair: ADDI8(pair,pair)   "\tcall __add64\n" 1
+pair: ADDU8(pair,pair)   "\tcall __add64\n" 1
+pair: SUBI8(pair,pair)   "\tcall __sub64\n" 1
+pair: SUBU8(pair,pair)   "\tcall __sub64\n" 1
+pair: BANDI8(pair,pair)  "\tcall __and64\n" 1
+pair: BANDU8(pair,pair)  "\tcall __and64\n" 1
+pair: BORI8(pair,pair)   "\tcall __or64\n" 1
+pair: BORU8(pair,pair)   "\tcall __or64\n" 1
+pair: BXORI8(pair,pair)  "\tcall __xor64\n" 1
+pair: BXORU8(pair,pair)  "\tcall __xor64\n" 1
+pair: BCOMI8(pair)       "\tcall __not64\n" 1
+pair: BCOMU8(pair)       "\tcall __not64\n" 1
+pair: NEGI8(pair)        "\tcall __neg64\n" 1
 
 
-stmt: EQI8(pair,pair) ";EQI8s\n\txor x5, x%0, x%1\n\tbne x5, x0, 12\n\txor x5, x%0^, x%1^\n\tbeq x5, x0, %a\n" 1
-stmt: EQU8(pair,pair) ";EQU8s\n\txor x5, x%0, x%1\n\tbne x5, x0, 12\n\txor x5, x%0^, x%1^\n\tbeq x5, x0, %a\n" 1
-stmt: NEI8(pair,pair) ";NEI8s\n\txor x5, x%0, x%1\n\tbne x5, x0, %a\n\txor x5, x%0^, x%1^\n\tbne x5, x0, %a\n" 1
-stmt: NEU8(pair,pair) ";NEU8s\n\txor x5, x%0, x%1\n\tbne x5, x0, %a\n\txor x5, x%0^, x%1^\n\tbne x5, x0, %a\n" 1
-stmt: LTI8(pair,pair) ";LTI8s\n\tblt x%0^, x%1^, %a\n\tbne x%0^, x%1^, 8\n\tbltu x%0, x%1, %a\n" 1
-stmt: LTU8(pair,pair) ";LTU8s\n\tbltu x%0^, x%1^, %a\n\tbne x%0^, x%1^, 8\n\tbltu x%0, x%1, %a\n" 1
-stmt: GTI8(pair,pair) ";GTI8s\n\tbgt x%0^, x%1^, %a\n\tbne x%0^, x%1^, 8\n\tbgtu x%0, x%1, %a\n" 1
-stmt: GTU8(pair,pair) ";GTU8s\n\tbgtu x%0^, x%1^, %a\n\tbne x%0^, x%1^, 8\n\tbgtu x%0, x%1, %a\n" 1
-stmt: GEI8(pair,pair) ";GEI8s\n\tbgt x%0^, x%1^, %a\n\tblt x%0^, x%1^, 8\n\tbgeu x%0, x%1, %a\n" 1
-stmt: GEU8(pair,pair) ";GEU8s\n\tbgtu x%0^, x%1^, %a\n\tbltu x%0^, x%1^, 8\n\tbgeu x%0, x%1, %a\n" 1
-stmt: LEI8(pair,pair) ";LEI8s\n\tblt x%0^, x%1^, %a\n\tbgt x%0^, x%1^, 8\n\tbleu x%0, x%1, %a\n" 1
-stmt: LEU8(pair,pair) ";LEU8s\n\tbltu x%0^, x%1^, %a\n\tbgtu x%0^, x%1^, 8\n\tbleu x%0, x%1, %a\n" 1
+stmt: EQI8(pair,pair) ";EQI8s\n\txor x5, x%0^, x%1^\n\tbne x5, x0, 12\n\txor x5, x%0, x%1\n\tbeq x5, x0, %a\n" 2
+stmt: EQU8(pair,pair) ";EQU8s\n\txor x5, x%0^, x%1^\n\tbne x5, x0, 12\n\txor x5, x%0, x%1\n\tbeq x5, x0, %a\n" 2
+stmt: NEI8(pair,pair) ";NEI8s\n\txor x5, x%0^, x%1^\n\tbne x5, x0, %a\n\txor x5, x%0, x%1\n\tbne x5, x0, %a\n" 2
+stmt: NEU8(pair,pair) ";NEU8s\n\txor x5, x%0^, x%1^\n\tbne x5, x0, %a\n\txor x5, x%0, x%1\n\tbne x5, x0, %a\n" 2
+stmt: LTI8(pair,pair) ";LTI8s\n\tblt x%0, x%1, %a\n\tbne x%0, x%1, 8\n\tbltu x%0^, x%1^, %a\n" 2
+stmt: LTU8(pair,pair) ";LTU8s\n\tbltu x%0, x%1, %a\n\tbne x%0, x%1, 8\n\tbltu x%0^, x%1^, %a\n" 2
+stmt: GTI8(pair,pair) ";GTI8s\n\tbgt x%0, x%1, %a\n\tbne x%0, x%1, 8\n\tbgtu x%0^, x%1^, %a\n" 2
+stmt: GTU8(pair,pair) ";GTU8s\n\tbgtu x%0, x%1, %a\n\tbne x%0, x%1, 8\n\tbgtu x%0^, x%1^, %a\n" 2
+stmt: GEI8(pair,pair) ";GEI8s\n\tbgt x%0, x%1, %a\n\tblt x%0, x%1, 8\n\tbgeu x%0^, x%1^, %a\n" 2
+stmt: GEU8(pair,pair) ";GEU8s\n\tbgtu x%0, x%1, %a\n\tbltu x%0, x%1, 8\n\tbgeu x%0^, x%1^, %a\n" 2
+stmt: LEI8(pair,pair) ";LEI8s\n\tblt x%0, x%1, %a\n\tbgt x%0, x%1, 8\n\tbleu x%0^, x%1^, %a\n" 2
+stmt: LEU8(pair,pair) ";LEU8s\n\tbltu x%0, x%1, %a\n\tbgtu x%0, x%1, 8\n\tbleu x%0^, x%1^, %a\n" 2
 
-pair: MULI8(pair,pair)   ";MULI8\n" 1
-pair: MULU8(pair,pair)   ";MULU8\n" 1
-pair: DIVI8(pair,pair)   ";DIVI8\n" 1
-pair: DIVU8(pair,pair)   ";DIVU8\n" 1
-pair: MODI8(pair,pair)   ";MODI8\n" 1
-pair: MODU8(pair,pair)   ";MODU8\n" 1
-pair: LSHI8(pair,pair)   ";LSHI8\n" 1
-pair: LSHU8(pair,pair)   ";LSHU8\n" 1
-pair: RSHI8(pair,pair)   ";RSHI8\n" 1
-pair: RSHU8(pair,pair)   ";RSHU8\n" 1
+pair: MULI8(pair,pair)   "\tcall __muli64\n" 1
+pair: MULU8(pair,pair)   "\tcall __mulu64\n" 1
+pair: DIVI8(pair,pair)   "\tcall __divi64\n" 1
+pair: DIVU8(pair,pair)   "\tcall __divu64\n" 1
+pair: MODI8(pair,pair)   "\tcall __modi64\n" 1
+pair: MODU8(pair,pair)   "\tcall __modu64\n" 1
+pair: LSHI8(pair,reg)    "\tcall __shll64\n" 1
+pair: LSHU8(pair,reg)    "\tcall __shll64\n" 1
+pair: RSHI8(pair,reg)    "\tcall __shra64\n" 1
+pair: RSHU8(pair,reg)    "\tcall __shrl64\n" 1
 
-pair: CVII8(reg)  ";CVII8\n\tmv x%c, x%0\n\tshrai x%c^, x%0, 31\n" 1  
-pair: CVUI8(reg)  ";CVIU8\n\tmv x%c, x%0\n\tshrai x%c^, x%0, 31\n" 1  
-pair: CVIU8(reg) ";CVUI8\n\tmv x%c, x%0\n\tmv x%c^, x0\n" 1  
-pair: CVUU8(reg) ";CVUU8\n\tmv x%c, x%0\n\tmv x%c^, x0\n" 1
-
-pair: CVFF8(reg)  "; F8" 1 
-pair: CVFI8(reg)  "#" 1  
+pair: CVII8(reg)  ";CVII8\n\tmv x%c^, x%0\n\tshrai x%c, x%0, 31\n" 1  
+pair: CVUI8(reg)  ";CVUI8\n\tmv x%c^, x%0\n\tmv x%c, x0\n" 1  
+pair: CVIU8(reg)  ";CVIU8\n\tmv x%c^, x%0\n\tmv x%c, x0\n" 1  
+pair: CVUU8(reg)  ";CVUU8\n\tmv x%c^, x%0\n\tmv x%c, x0\n" 1
 
 %%
 
@@ -703,6 +753,7 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
   int framesizeabs;
   int svx11 = 0;
   Symbol argregs[6];
+  //Symbol cached_globaladdr = NULL;
 
   retstruct = isstruct(freturn(f->type));
   svx11 = retstruct;
@@ -806,9 +857,9 @@ static void function(Symbol f, Symbol caller[], Symbol callee[], int ncalls) {
       } else {
         int off = in->x.offset;
         int n = (in->type->size + 3) / 4;
-        int i;
-        for (i = rn; i < rn + n; i++) {
-                print("\tsw x%d,%d(x8)\n", i, framesize + off + (i - rn) * 4);
+        int j;
+        for (j = rn; j < rn + n; j++) {
+                print("\tsw x%d,%d(x8)\n", j, framesize + off + (j - rn) * 4);
         }
       }
     }
@@ -979,6 +1030,9 @@ static Symbol rmap(int opk) {
     case B: 
      return iregw;
     case F:
+      if (sz == 8) {
+        return ireg2w;
+      }
       return iregw;      
     default:
       return 0;
@@ -1059,7 +1113,7 @@ static void emit2(Node p) {
         if (q == NULL) {
             /* If it spills to stack */
             int stack_off = p->syms[2]->u.c.v.i;
-            print("\tsw x%d,%d(x2)\n\tsw x%d^,%d(x2)\n", src, stack_off, src, stack_off + 4);
+            print("\tsw x%d,%d(x2)\n\tsw x%d^,%d(x2) ; ARG spill\n", src, stack_off, src, stack_off + 4);
         }
         break;
       }
@@ -1103,13 +1157,6 @@ static void emit2(Node p) {
               getregnum(p->x.kids[1]), 0,
               p->syms[0]->u.c.v.i, tmpregs);
       break;
-    
-    case RET + I:
-    case RET + U:
-      if (opsize(p->op) == 8) {
-        print("\t;RET8\n");
-      }
-    break;
   }
 }
 
@@ -1130,7 +1177,7 @@ static void doarg(Node p) {
   }
 
 
-    size = p->syms[0]->u.c.v.i;
+  size = p->syms[0]->u.c.v.i;
 
 
   offset = mkactual(align, size);
@@ -1162,17 +1209,24 @@ static void target(Node p) {
       break;
     case ADD + I:    case ADD + U:
     case SUB + I:    case SUB + U:
-    case NEG + I: 
-    case BAND + I:
-    case BAND+U:
-    case BOR+I:
-    case BOR+U:
-    case BXOR+I:
-    case BXOR+U:
+    case DIV + I:    case DIV + U:
+    case MUL + I:    case MUL + U:
+    case LSH + I:    case LSH + U:
+    case RSH + I:    case RSH + U:
+    case MOD + I:    case MOD + U:
+    case BAND + I:   case BAND + U:
+    case BOR+I:      case BOR+U:
+    case BXOR+I:     case BXOR+U:
+      if(sizeop(p->op) == 8) {
+        setreg (p, ireg2[10]);
+      }
+      break;
     case BCOM+I:
     case BCOM+U:
+    case NEG + I: 
       if(sizeop(p->op) == 8) {
-        setreg (p, ireg2w);
+        setreg (p, ireg2[10]);
+        rtarget (p, 0, ireg2[12]);
       }
       break;
     case CVI + I:    case CVI + U:
@@ -1191,9 +1245,6 @@ static void target(Node p) {
     case GE + I:     case GE + U:
     case LE + I:     case LE + U:
       if(sizeop(p->op) == 8) {
-          fprintf(stderr, "64-bit comparison: op=%x\n", p->op);
-          fprintf(stderr, "  left kid op=%x\n", p->kids[0]->op);
-          fprintf(stderr, "  right kid op=%x\n", p->kids[1]->op);
           // For 64-bit comparisons that produce a boolean result in a register
           setreg(p, iregw);  // Boolean result is 32-bit, so use single register
       }
@@ -1241,8 +1292,10 @@ static void target(Node p) {
     case RET+P:
     case RET+U:
       if (opsize(p->op) == 8) {
+          print(";TARGET REG X10:X11?\n");
           rtarget(p, 0, ireg2[10]); /* Return pair x10-x11 */
       } else {
+          print(";TARGET REG X10?\n");
           rtarget(p, 0, ireg[10]);
       }
       break;
@@ -1312,22 +1365,14 @@ static void clobber(Node p) {
     case CALL+V:
       spill(INTTMP | INTRET, IREG, p);
       break;
-    case ADD + I:    case ADD + U:
-    case SUB + I:    case SUB + U:
-    case NEG + I:
     case EQ + I:     case EQ + U:
     case NE + I:     case NE + U:
+    case LT + I:     case LT + U:
+    case LE + I:     case LE + U:
+    case GT + I:     case GT + U:
+    case GE + I:     case GE + U:
       if(sizeop(p->op) == 8) {
         spill(INTTMP64, IREG, p);      /* Use even‑only mask for 64‑bit spills */
-      }
-      break;
-    /* Also add other 64‑bit operations that may spill */
-    case BAND + I: case BAND + U:
-    case BOR + I:  case BOR + U:
-    case BXOR + I: case BXOR + U:
-    case BCOM + I: case BCOM + U:
-      if(sizeop(p->op) == 8) {
-        spill(INTTMP64, IREG, p);
       }
       break;
   }
@@ -1338,7 +1383,11 @@ mulops_calls (int op)
 {
 
   if ((generic (op) == ADD || generic (op) == SUB || generic (op) == DIV
-  || generic (op) == MOD || generic (op) == MUL) &&   optype (op) == F)
+  || generic (op) == MOD || generic (op) == MUL) &&   (optype (op) == F))
+    return 1;
+
+  if ((generic (op) == BAND || generic (op) == BOR || generic (op) == BXOR
+  || generic (op) == BCOM || generic (op) == NEG) &&  opsize(op) == 8)
     return 1;
 
   if (generic (op) == NEG && optype (op) == F)
@@ -1393,10 +1442,10 @@ Interface siriusIR = {
   2, 2, 0,      /* short */
   4, 4, 0,      /* int */
   4, 4, 0,      /* long */
-  8, 4, 0,      /* long long */
+  4, 4, 0,      /* long long */
   4, 4, 1,      /* float */
-  8, 4, 1,      /* double */
-  8, 4, 1,      /* long double */
+  4, 4, 1,      /* double */
+  4, 4, 1,      /* long double */
   4, 4, 0,      /* T * */
   0, 1, 0,      /* struct */
   0,            /* little_endian */
