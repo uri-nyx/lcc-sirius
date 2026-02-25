@@ -442,6 +442,11 @@ int getNextToken(void)
                                 tokenvalNumber *= 10;
                                 tokenvalNumber += digit;
                         }
+                        if (*lineptr && *lineptr == '^') {
+                                if (tokenvalNumber % 2 != 0) error("illegal register odd pair number %d in line %d", tokenvalNumber, lineno);
+                                else if (tokenvalNumber != 0) tokenvalNumber++;
+                                lineptr++;
+                        }
                         if (tokenvalNumber < 0 || tokenvalNumber >= NUM_REGS) {
                                 error("illegal register number %d in line %d",
                                       tokenvalNumber, lineno);
@@ -1977,7 +1982,7 @@ void format2B(unsigned int code)
                 getToken();
         v = parseExpression();
         if (v.sym == NULL) {
-                immed = v.con / 2;
+                immed = v.con;
         } else {
                 addFixup(v.sym, currSeg, segPtr[currSeg], METHOD_R15, v.con);
                 immed = 0;

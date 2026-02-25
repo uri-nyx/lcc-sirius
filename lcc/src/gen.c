@@ -358,8 +358,9 @@ unsigned emitasm(Node p, int nt) {
 				print("%d", framesize);
 			else if (*fmt >= '0' && *fmt <= '9')
 				emitasm(kids[*fmt - '0'], nts[*fmt - '0']);
-			else if (*fmt >= 'a' && *fmt < 'a' + NELEMS(p->syms))
+			else if (*fmt >= 'a' && *fmt < 'a' + NELEMS(p->syms)) {
 				fputs(p->syms[*fmt - 'a']->x.name, stdout);
+			}
 			else
 				(void)putchar(*fmt);
 	}
@@ -827,4 +828,3 @@ unsigned regloc(Symbol p) {
 	assert(p && p->sclass == REGISTER && p->x.regnode);
 	return p->x.regnode->set<<8 | p->x.regnode->number;
 }
-

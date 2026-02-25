@@ -139,10 +139,8 @@ static int retstruct = 0;
 %term CALLB=217
 %term CALLF4=4305
 %term CALLI4=4309
-%term CALLI8=8405
 %term CALLP4=4311
 %term CALLU4=4310
-%term CALLU8=8406
 %term CALLV=216
 
 %term RETF4=4337
@@ -247,15 +245,15 @@ reg:	INDIRU4(VREGP)		"# read register\n"
 pair:	INDIRU8(VREGP)		"# read register pair\n" 0
 
 
-stmt:	ASGNI1(VREGP,reg)	 "# write register\n"
-stmt:	ASGNI2(VREGP,reg)	 "# write register\n"
-stmt:	ASGNI4(VREGP,reg)	 "# write register\n"
-stmt:	ASGNI8(VREGP,pair) "# write register\n"
-stmt:	ASGNP4(VREGP,reg)	 "# write register\n"
-stmt:	ASGNU1(VREGP,reg)	 "# write register\n"
-stmt:	ASGNU2(VREGP,reg)	 "# write register\n"
-stmt:	ASGNU4(VREGP,reg)	 "# write register\n"
-stmt:	ASGNU8(VREGP,pair) "# write register\n"
+stmt:	ASGNI1(VREGP,reg)	"# write register\n"
+stmt:	ASGNI2(VREGP,reg)	"# write register\n"
+stmt:	ASGNI4(VREGP,reg)	"# write register\n"
+stmt:	ASGNI8(VREGP,pair)	"# write register\n"
+stmt:	ASGNP4(VREGP,reg)	"# write register\n"
+stmt:	ASGNU1(VREGP,reg)	"# write register\n"
+stmt:	ASGNU2(VREGP,reg)	"# write register\n"
+stmt:	ASGNU4(VREGP,reg)	"# write register\n"
+stmt:	ASGNU8(VREGP,pair)	"# write register\n"
 
 con:	CNSTI1			"%a"
 con:	CNSTI2			"%a"
@@ -469,18 +467,14 @@ reg: LEU4(reg,reg)  "\tsltu x%c,x%1,x%0\n\txori x%c,x%c,1\n"  2
 reg:  CALLF4(lab)  "\tcall %0\n"  1
 
 reg:  CALLI4(lab)  "\tcall %0\n"  1
-pair:  CALLI8(lab)  "\tcall %0\n"  1
 reg:  CALLP4(lab)  "\tcall %0\n"  1
 reg:  CALLU4(lab)  "\tcall %0\n"  1
-pair:  CALLU8(lab)  "\tcall %0\n"  1
 stmt: CALLV(lab)  "\tcall %0\n"  1
 
 reg:  CALLF4(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLI4(reg)  "\tjalr x1, 0(x%0)\n"  1
-pair:  CALLI8(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLP4(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLU4(reg)  "\tjalr x1, 0(x%0)\n"  1
-pair:  CALLU8(reg)  "\tjalr x1, 0(x%0)\n"  1
 stmt: CALLV(reg)  "\tjalr x1, 0(x%0)\n"  1
 
 stmt: CALLB(lab, reg)  "\tcall %0\n"  1
@@ -488,26 +482,22 @@ stmt: CALLB(reg, reg)  "\tjalr x1, 0(x%0)\n"  1
 
 
 stmt:	RETI4(reg)		"# ret\n"		1
-stmt:	RETI8(pair)		";RETI8 # ret\n"		1
+stmt:	RETI8(reg)		";RETI8 # ret\n"		1
 stmt:	RETP4(reg)		"# ret\n"		1
 stmt:	RETU4(reg)		"# ret\n"		1
-stmt:	RETU8(pair)		"# ret\n"		1
+stmt:	RETU8(reg)		"# ret\n"		1
 stmt:	RETV(reg)		  "# ret\n"		1
 stmt:	RETF4(reg)		"# ret\n"		1
 
 stmt:	ARGI4(reg)		"# arg\n"		1
-stmt: ARGI8(pair)    "# arg\n" 1
+stmt: ARGI8(reg)    "# arg\n" 1
 stmt:	ARGP4(reg)		"# arg\n"		1
 stmt:	ARGU4(reg)		"# arg\n"		1
-stmt: ARGU8(pair)    "# arg\n" 1
 stmt:	ARGF4(reg)		"# arg\n"		1
 
 
 stmt:	ARGB(INDIRB(reg))	"# argb %0\n"		1
 stmt:	ARGI8(INDIRI8(pair))	"#;ARG8 INDIR x%0\n"		1
-stmt:	ARGI8(INDIRI8(reg))	"#;ARG8 INDIR x%0\n"		1
-stmt:	ARGU8(INDIRU8(pair))	"#;ARG8 INDIR x%0\n"		1
-stmt:	ARGU8(INDIRU8(reg))	"#;ARG8 INDIR x%0\n"		1
 stmt:	ASGNB(reg,INDIRB(reg))	"# asgnb %0 %1\n"	1
 
 reg:	INDIRF4(VREGP)		"# read register\n"
@@ -890,11 +880,8 @@ static void progbeg(int argc, char *argv[]) {
   fprintf(stderr, "HELLO, WORLD\n");  
 
   for (i = 0; i < argc; i++)
-    if (strcmp(argv[i], "-d") == 0) {
-
+    if (strcmp(argv[i], "-d") == 0)
 			dflag = 1;		
-      fprintf(stderr, "Dumping tree\n");
-    }
   for (i = 0; i < 32; i++) {
     ireg[i] = mkreg("%d", i, 1, IREG);
   }
@@ -1078,6 +1065,7 @@ static void emit2(Node p) {
         if (sz == 8 && p->x.registered) {
           unsigned long long con = p->syms[0]->u.c.v.u; 
           dst = getregnum(p);
+          fprintf(stderr, "EVEN HERE?\n");
           print("\tli x%d, 0x%x\n\tli x%d^, 0x%x\n", dst, con>>32, dst, con & 0xFFFFFFFF);
         }
         break;

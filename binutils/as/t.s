@@ -173,7 +173,10 @@ _start:
 ; 0000 0000 name
 ; 8000 0000 type UNDEFINED
 ; 0000 0000 value meaningless
-la x10, _in_another_file
+; la x10, _in_another_file
+add x6, x12, x14
+add x6^, x12^, x14^
+add x10, x11, x13
 ret
 ;.space 0x10000
 ;#res 0x10000
