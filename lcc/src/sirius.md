@@ -412,11 +412,11 @@ reg: LOADI2(reg)  "\tmv x%c,x%0 ; LOADI2\n"  move(a)
 reg: LOADU2(reg)  "\tmv x%c,x%0 ; LOADU2\n"  move(a)
 reg: LOADI4(reg)  "\tmv x%c,x%0 ; LOADI4\n"  move(a)
 reg: LOADI4(pair) "\tmv x%c,x%0^ ; LOADI4 from pair (trunc 64->32)\n" 2
-pair: LOADI8(pair)  "\tmv x%c,%x0\n\tmv x%c^,%x0^ ; LOADI8\n"  move(a)
+pair: LOADI8(pair)  "\tmv x%c,x%0\n\tmv x%c^,x%0^ ; LOADI8\n"  move(a)
 reg: LOADP4(reg)  "\tmv x%c,x%0 ; LOADP4\n"  move(a)
 reg: LOADU4(reg)  "\tmv x%c,x%0 ; LOADU4\n"  move(a)
 reg: LOADU4(pair) "\tmv x%c,x%0^ ; LOADU4 from pair (trunc 64->32)\n" 2
-pair: LOADU8(pair)  "\tmv x%c,%x0\n\tmv x%c^,%x0^ ; LOADU8\n"  move(a)
+pair: LOADU8(pair)  "\tmv x%c,x%0\n\tmv x%c^,x%0^ ; LOADU8\n"  move(a)
 
 
 
@@ -579,7 +579,7 @@ pair:	CVFI8(pair)		"\tcall double_to_int64\n"	1
 reg:	CVFF4(pair)		"\tcall double_to_float\n"	1
 pair:	CVFF8(reg)		"\tcall float_to_double\n"	1
 
-pair:	LOADF8(pair)		"\tmv x%c,%x0\n\tmv x%c^,%x0^\n"	move(a)
+pair:	LOADF8(pair)		"\tmv x%c,x%0\n\tmv x%c^,x%0^\n"	move(a)
 
 stmt:	RETF8(pair)		"# ret double\n"	1
 
@@ -937,9 +937,6 @@ static void progbeg(int argc, char *argv[]) {
   setSwap();
   segment(CODE);
   parseflags(argc, argv);
-
-  fprintf(stderr, "HELLO, WORLD\n");  
-
   for (i = 0; i < argc; i++)
     if (strcmp(argv[i], "-d") == 0) {
 
@@ -1203,9 +1200,15 @@ static void target(Node p) {
     case LT + F:
     case GT + F:
     case GE + F:
-      setreg (p, ireg[10]);
-      rtarget (p, 0, ireg[12]);
-      rtarget (p, 1, ireg[13]);
+      if(opsize(p->op) == 8) {
+        setreg (p, ireg2[10]);
+        rtarget (p, 0, ireg2[12]);
+        rtarget (p, 1, ireg2[14]);
+      } else {
+        setreg (p, ireg[10]);
+        rtarget (p, 0, ireg[12]);
+        rtarget (p, 1, ireg[13]);
+      }
       break;
     case ADD + I:    case ADD + U:
     case SUB + I:    case SUB + U:
@@ -1217,14 +1220,16 @@ static void target(Node p) {
     case BAND + I:   case BAND + U:
     case BOR+I:      case BOR+U:
     case BXOR+I:     case BXOR+U:
-      if(sizeop(p->op) == 8) {
+      if(opsize(p->op) == 8) {
         setreg (p, ireg2[10]);
+        rtarget (p, 0, ireg2[12]);
+        rtarget (p, 1, ireg2[14]);
       }
       break;
     case BCOM+I:
     case BCOM+U:
     case NEG + I: 
-      if(sizeop(p->op) == 8) {
+      if(opsize(p->op) == 8) {
         setreg (p, ireg2[10]);
         rtarget (p, 0, ireg2[12]);
       }
@@ -1244,7 +1249,7 @@ static void target(Node p) {
     case GT + I:     case GT + U:
     case GE + I:     case GE + U:
     case LE + I:     case LE + U:
-      if(sizeop(p->op) == 8) {
+      if(opsize(p->op) == 8) {
           // For 64-bit comparisons that produce a boolean result in a register
           setreg(p, iregw);  // Boolean result is 32-bit, so use single register
       }
@@ -1252,8 +1257,21 @@ static void target(Node p) {
     case NEG + F:
     case CVI + F:
     case CVF + I:
-      setreg (p, ireg[10]);
-      rtarget (p, 0, ireg[12]);
+      if (opsize(p->op) == 8) {
+        setreg (p, ireg2[10]);
+        rtarget (p, 0, ireg2[12]);
+      }
+      else
+      {
+        setreg (p, ireg[10]);
+        rtarget (p, 0, ireg[12]);
+      }    
+      break;
+    case CVF + F:
+      if (opsize(p->op) == 8) {
+        setreg (p, ireg2[10]);
+        rtarget (p, 0, ireg2[12]);
+      }
       break;
     case CNST+I:
     case CNST+P:
@@ -1269,6 +1287,7 @@ static void target(Node p) {
     case CALL+I:
     case CALL+P:
     case CALL+U:
+    case CALL+F:
      if (opsize(p->op) == 8) {
         setreg(p, ireg2[10]); 
     } else {
@@ -1281,26 +1300,19 @@ static void target(Node p) {
         //printf("; CALLB: %s kids[1] = %s\n", p->k[1]->name, freturn(p->k[1]->type)->size);
         rtarget(p, 1, ireg[11]);
       break;
-    case CALL+F:
       /*rtarget(p, 0, ireg[31]);*/
-      setreg(p, ireg[10]);
-      break;
     case CALL+V:
       /*rtarget(p, 0, ireg[31]);*/
       break;
     case RET+I:
     case RET+P:
     case RET+U:
+    case RET+F:
       if (opsize(p->op) == 8) {
-          print(";TARGET REG X10:X11?\n");
           rtarget(p, 0, ireg2[10]); /* Return pair x10-x11 */
       } else {
-          print(";TARGET REG X10?\n");
           rtarget(p, 0, ireg[10]);
       }
-      break;
-    case RET+F:
-          rtarget(p, 0, ireg[10]);
       break;
     case ARG+I:
     case ARG+P:
@@ -1320,15 +1332,6 @@ static void target(Node p) {
       break;
     case ARG+B:
       rtarget(p->kids[0], 0, blkreg);
-      break;
-    case INDIR+I:
-    case INDIR+U:
-    case INDIR+P:
-      if (opsize(p->op) == 8) {
-        setreg(p, ireg2w);
-      } else {
-        setreg(p, iregw);
-      }
       break;
   }
 }
@@ -1361,7 +1364,10 @@ static void clobber(Node p) {
     case CVI+F:
     case CVF+I:
       spill(INTTMP, IREG, p);      
-      break;      
+      break;  
+    case CVF+F:
+      if (opsize(p->op) ==8)spill(INTTMP64, IREG, p);
+      break;
     case CALL+V:
       spill(INTTMP | INTRET, IREG, p);
       break;
@@ -1371,8 +1377,29 @@ static void clobber(Node p) {
     case LE + I:     case LE + U:
     case GT + I:     case GT + U:
     case GE + I:     case GE + U:
-      if(sizeop(p->op) == 8) {
+      if(opsize(p->op) == 8) {
         spill(INTTMP64, IREG, p);      /* Use even‑only mask for 64‑bit spills */
+      }
+      break;
+     case ADD + I:    case ADD + U:
+    case SUB + I:    case SUB + U:
+    case DIV + I:    case DIV + U:
+    case MUL + I:    case MUL + U:
+    case LSH + I:    case LSH + U:
+    case RSH + I:    case RSH + U:
+    case MOD + I:    case MOD + U:
+    case BAND + I:   case BAND + U:
+    case BOR+I:      case BOR+U:
+    case BXOR+I:     case BXOR+U:
+      if(opsize(p->op) == 8) {
+        spill(INTTMP64, IREG, p);
+      }
+      break;
+    case BCOM+I:
+    case BCOM+U:
+    case NEG + I: 
+      if(opsize(p->op) == 8) {
+        spill(INTTMP64, IREG, p);
       }
       break;
   }
@@ -1386,9 +1413,6 @@ mulops_calls (int op)
   || generic (op) == MOD || generic (op) == MUL) &&   (optype (op) == F))
     return 1;
 
-  if ((generic (op) == BAND || generic (op) == BOR || generic (op) == BXOR
-  || generic (op) == BCOM || generic (op) == NEG) &&  opsize(op) == 8)
-    return 1;
 
   if (generic (op) == NEG && optype (op) == F)
     return 1;
@@ -1398,6 +1422,14 @@ mulops_calls (int op)
 
   if (generic (op) == CVF && optype (op) == I)
     return 1;
+
+  if (generic (op) == CVF && optype (op) == F && opsize(op) == 8)
+    return 1;
+  
+
+  if ((generic(op) == ADD || generic(op) == SUB || generic(op) == DIV || generic(op) == MOD || generic(op) == MUL || generic(op) == LSH 
+  || generic(op) == RSH || generic(op) == BAND || generic(op) == BOR || generic(op) == BXOR || generic(op) == BCOM || generic(op) == NEG) 
+  && opsize(op) == 8) return 1;
 
   return 0;
 }
@@ -1442,10 +1474,10 @@ Interface siriusIR = {
   2, 2, 0,      /* short */
   4, 4, 0,      /* int */
   4, 4, 0,      /* long */
-  4, 4, 0,      /* long long */
+  8, 8, 0,      /* long long */
   4, 4, 1,      /* float */
-  4, 4, 1,      /* double */
-  4, 4, 1,      /* long double */
+  8, 8, 1,      /* double */
+  8, 8, 1,      /* long double */
   4, 4, 0,      /* T * */
   0, 1, 0,      /* struct */
   0,            /* little_endian */

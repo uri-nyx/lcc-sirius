@@ -432,8 +432,12 @@ static void prelabel(Node p) {
 			p->op = VREG+P;
 		break;
 	case INDIR:
-		if (p->kids[0]->op == VREG+P)
+		if (p->kids[0]->op == VREG+P) {
 			setreg(p, p->kids[0]->syms[0]);
+			debug(fprint(stderr, "prelabel INDIR(VREGP): node=%x sym=%s sclass=%d reg=%d\n", p, 
+			p->syms[RX]->name, p->syms[RX]->sclass, 
+			p->syms[RX]->x.regnode ? p->syms[RX]->x.regnode->number : -1));
+		}
 		break;
 	case ASGN:
 		if (p->kids[0]->op == VREG+P)
@@ -613,6 +617,10 @@ static void ralloc(Node p) {
 	mask[1] = tmask[1];
 	assert(p);
 	debug(fprint(stderr, "(rallocing %x)\n", p));
+	debug(fprint(stderr, "ralloc INDIR(VREGP): node=%x sym=%s sclass=%d reg=%d registered=%d\n", p, 
+	p->syms[RX] ? p->syms[RX]->name : "NULL", 
+	p->syms[RX] ? p->syms[RX]->sclass : -1, p->syms[RX] 
+	&& p->syms[RX]->x.regnode ? p->syms[RX]->x.regnode->number : -1, p->x.registered));
 	for (i = 0; i < NELEMS(p->x.kids) && p->x.kids[i]; i++) {
 		Node kid = p->x.kids[i];
 		Symbol r = kid->syms[RX];
