@@ -487,6 +487,7 @@ reg: LEI4(reg,reg)  "\tslt x%c,x%1,x%0\n\txori x%c,x%c,1\n"   2
 reg: LEU4(reg,reg)  "\tsltu x%c,x%1,x%0\n\txori x%c,x%c,1\n"  2
 
 reg:  CALLF4(lab)  "\tcall %0\n"  1
+pair:  CALLF8(lab)  "\tcall %0\n"  1
 
 reg:  CALLI4(lab)  "\tcall %0\n"  1
 pair:  CALLI8(lab)  "\tcall %0\n"  1
@@ -496,6 +497,7 @@ pair:  CALLU8(lab)  "\tcall %0\n"  1
 stmt: CALLV(lab)  "\tcall %0\n"  1
 
 reg:  CALLF4(reg)  "\tjalr x1, 0(x%0)\n"  1
+pair:  CALLF8(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLI4(reg)  "\tjalr x1, 0(x%0)\n"  1
 pair:  CALLI8(reg)  "\tjalr x1, 0(x%0)\n"  1
 reg:  CALLP4(reg)  "\tjalr x1, 0(x%0)\n"  1
@@ -551,33 +553,33 @@ stmt:	GEF4(reg,reg)       "\tcall float32_ge\n\tbne x10,x0,%a\n"   1
 stmt:	GTF4(reg,reg)       "\tcall float32_gt\n\tbne x10,x0,%a\n"   1
 stmt:	NEF4(reg,reg)		"\tcall float32_ne\n\tbne x10,x0,%a\n"   1
 
-
 pair:	INDIRF8(VREGP)		"# read double register pair\n" 0
 stmt:	ASGNF8(VREGP,pair)	"# write double register pair\n"
 
 stmt:	ASGNF8(addr,pair)	"\tsw x%1, %0\n\tsw x%1^, 4%0\n"	1
 pair:	INDIRF8(addr)		"\tlw x%c,%0\n\tlw x%c^, 4%0\n" 1
 
-pair:	ADDF8(pair,pair)	"\tcall double_add\n"	1
-pair:	SUBF8(pair,pair)	"\tcall double_sub\n"	1
-pair:	MULF8(pair,pair)	"\tcall double_mul\n"	1
-pair:	DIVF8(pair,pair)	"\tcall double_div\n"	1
-pair:	NEGF8(pair)		"\tcall double_neg\n"	1
+pair:	ADDF8(pair,pair)	"\tcall __float64_add\n"	1
+pair:	SUBF8(pair,pair)	"\tcall __float64_sub\n"	1
+pair:	MULF8(pair,pair)	"\tcall __float64_mul\n"	1
+pair:	DIVF8(pair,pair)	"\tcall __float64_div\n"	1
+pair:	NEGF8(pair)		    "\tcall __float64_neg\n"	1
 
-stmt:	EQF8(pair,pair)		"\tcall double_eq\n\tbne x10,x0,%a\n"	1
-stmt:	NEF8(pair,pair)		"\tcall double_ne\n\tbne x10,x0,%a\n"	1
-stmt:	LTF8(pair,pair)		"\tcall double_lt\n\tbne x10,x0,%a\n"	1
-stmt:	LEF8(pair,pair)		"\tcall double_le\n\tbne x10,x0,%a\n"	1
-stmt:	GTF8(pair,pair)		"\tcall double_gt\n\tbne x10,x0,%a\n"	1
-stmt:	GEF8(pair,pair)		"\tcall double_ge\n\tbne x10,x0,%a\n"	1
+stmt:	EQF8(pair,pair)		"\tcall __float64_eq\n\tbne x10,x0,%a\n"	1
+stmt:	NEF8(pair,pair)		"\tcall __float64_ne\n\tbne x10,x0,%a\n"	1
+stmt:	LTF8(pair,pair)		"\tcall __float64_lt\n\tbne x10,x0,%a\n"	1
+stmt:	LEF8(pair,pair)		"\tcall __float64_le\n\tbne x10,x0,%a\n"	1
+stmt:	GTF8(pair,pair)		"\tcall __float64_gt\n\tbne x10,x0,%a\n"	1
+stmt:	GEF8(pair,pair)		"\tcall __float64_ge\n\tbne x10,x0,%a\n"	1
+stmt:	NEF4(reg,reg)		  "\tcall __float64_ne\n\tbne x10,x0,%a\n"   1
 
-pair:	CVIF8(reg)		"\tcall int32_to_double\n"	1
-reg:	CVFI4(pair)		"\tcall double_to_int32\n"	1
+pair:	CVIF8(reg)		"\tcall __int32_to_float64\n"	1
+reg:	CVFI4(pair)		"\tcall __float64_to_int32\n"	1
 
-pair:	CVIF8(pair)		"\tcall int64_to_double\n"	1
-pair:	CVFI8(pair)		"\tcall double_to_int64\n"	1
-reg:	CVFF4(pair)		"\tcall double_to_float\n"	1
-pair:	CVFF8(reg)		"\tcall float_to_double\n"	1
+pair:	CVIF8(pair)		"\tcall __int64_to_float64\n"	1
+pair:	CVFI8(pair)		"\tcall __float64_to_int64\n"	1
+reg:	CVFF4(pair)		"\tcall __float64_to_float\n"	1
+pair:	CVFF8(reg)		"\tcall __float_to_float64\n"	1
 
 pair:	LOADF8(pair)		"\tmv x%c,x%0\n\tmv x%c^,x%0^\n"	move(a)
 
@@ -1476,8 +1478,8 @@ Interface siriusIR = {
   4, 4, 0,      /* long */
   8, 8, 0,      /* long long */
   4, 4, 1,      /* float */
-  8, 8, 1,      /* double */
-  8, 8, 1,      /* long double */
+  4, 4, 1,      /* double */ //TODO: change back to 8 when we implement support
+  4, 4, 1,      /* long double */
   4, 4, 0,      /* T * */
   0, 1, 0,      /* struct */
   0,            /* little_endian */
