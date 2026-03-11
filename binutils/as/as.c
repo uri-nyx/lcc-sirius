@@ -1954,11 +1954,12 @@ void format3CSF(unsigned int code)
         expect(TOK_COMMA);
         getToken();
         expect(TOK_IREGISTER);
-        src2 = tokenvalNumber;
+        src2 = tokenvalNumber; 
         getToken();
+        
         direction = (code & 0xf00) >> 8;
         emitWord((code & 0x7F) << 25 | dst << 20 | src1 << 15 | src2 << 10 |
-                 direction & 0x7);
+                 (direction & 0x7));
 }
 
 void format2B(unsigned int code)
